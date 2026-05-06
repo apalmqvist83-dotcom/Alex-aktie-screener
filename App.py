@@ -71,4 +71,73 @@ def style_adx(val):
         return ''
     if val <= 20:
         return 'background-color: #ff4d4d; color: white; font-weight: bold'
-    elif 25 <= val <=
+    elif 25 <= val <= 30:          # ← Denna rad var trasig tidigare
+        return 'background-color: #ffcc00; color: black; font-weight: bold'
+    elif val >= 50:
+        return 'background-color: #00cc66; color: white; font-weight: bold'
+    return ''
+
+# ====================== USA ======================
+st.subheader("🇺🇸 USA Top 10")
+us_df = fetch_data(us_tickers)
+
+if not us_df.empty:
+    us_df["Score"] = 0.0
+    for col, weight in [("EV/EBITDA", 1), ("PEG", 1), ("FCF Yield (%)", -1), ("ROE (%)", -1)]:
+        if col in us_df.columns and us_df[col].notna().any():
+            us_df["Score"] += us_df[col].rank(ascending=weight > 0, pct=True) * weight
+
+    top_us = us_df.nsmallest(10, "Score").copy()
+
+    numeric_cols = ["Pris", "Forward P/E", "PEG", "EV/EBITDA", "ROE (%)", 
+                   "D/E", "FCF Yield (%)", "ADX", "Uppsida (%)"]
+    
+    styled_us = (top_us.style
+                 .map(style_adx, subset=['ADX'])
+                 .format("{:.2f}", subset=[col for col in numeric_cols if col in top_us.columns])
+    )
+
+    st.dataframe(styled_us, use_container_width=True, hide_index=True)
+else:
+    st.warning("Ingen data hämtades för USA.")
+
+# ====================== EUROPA ======================
+st.subheader("🇪🇺 Europa Top 10")
+eu_df = fetch_data(eu_tickers)
+
+if not eu_df.empty:
+    eu_df["Score"] = 0.0
+    for col, weight in [("EV/EBITDA", 1), ("PEG", 1), ("FCF Yield (%)", -1), ("ROE (%)", -1)]:
+        if col in eu_df.columns and eu_df[col].notna().any():
+            eu_df["Score"] += eu_df[col].rank(ascending=weight > 0, pct=True) * weight
+
+    top_eu = eu_df.nsmallest(10, "Score").copy()
+
+    styled_eu = (top_eu.style
+                 .map(style_adx, subset=['ADX'])
+                 .format("{:.2f}", subset=[col for col in numeric_cols if col in top_eu.columns])
+    )
+
+    st.dataframe(styled_eu, use_container_width=True, hide_index=True)
+else:
+    st.warning("Ingen data hämtades för Europa.")
+
+st.markdown("""
+**ADX-färgkodning:**  
+<span style='color:#ff4d4d'>■ 0–20</span> Svag trend | 
+<span style='color:#ffcc00'>■ 25–30</span> Börjande trend | 
+<span style='color:#00cc66'>■ ≥50</span> Stark trend
+""", unsafe_allow_html=True)
+
+with st.expander("📘 Förklaring av indikatorerna"):
+    st.markdown("""
+    - **Forward P/E, PEG, EV/EBITDA**: Ju lägre desto mer undervärderad.  
+    - **ROE (%)**: Högre = bättre lönsamhet.  
+    - **FCF Yield (%)**: Högre = mer fritt kassaflöde.  
+    - **ADX**: Trendstyrka (färgkodad i tabellen).  
+    - **Uppsida (%)**: Potentiell kursuppgång enligt analytiker.
+    """)
+
+st.caption("Kopiera Ticker eller Bolag och sök på Yahoo Finance • Data uppdateras vid refresh")
+if st.button("🔄 Uppdatera data nu"):
+    st.rerun()
