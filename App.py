@@ -97,10 +97,9 @@ if not us_df.empty:
 
     top_us = us_df.nsmallest(10, "Score").copy()
     
-    display_columns = ["Ticker", "Bolag", "Bolag_URL", "Sektor", "Pris", "Forward P/E", "PEG", 
-                      "EV/EBITDA", "ROE (%)", "D/E", "FCF Yield (%)", "ADX", "Uppsida (%)"]
+    display_df = top_us[["Ticker", "Bolag", "Bolag_URL", "Sektor", "Pris", "Forward P/E", "PEG", 
+                        "EV/EBITDA", "ROE (%)", "D/E", "FCF Yield (%)", "ADX", "Uppsida (%)"]]
     
-    display_df = top_us[display_columns]
     styled_us = display_df.style.map(style_adx, subset=['ADX'])
 
     st.dataframe(
@@ -139,10 +138,9 @@ if not eu_df.empty:
 
     top_eu = eu_df.nsmallest(10, "Score").copy()
     
-    display_columns = ["Ticker", "Bolag", "Bolag_URL", "Sektor", "Pris", "Forward P/E", "PEG", 
-                      "EV/EBITDA", "ROE (%)", "D/E", "FCF Yield (%)", "ADX", "Uppsida (%)"]
+    display_df = top_eu[["Ticker", "Bolag", "Bolag_URL", "Sektor", "Pris", "Forward P/E", "PEG", 
+                        "EV/EBITDA", "ROE (%)", "D/E", "FCF Yield (%)", "ADX", "Uppsida (%)"]]
     
-    display_df = top_eu[display_columns]
     styled_eu = display_df.style.map(style_adx, subset=['ADX'])
 
     st.dataframe(
