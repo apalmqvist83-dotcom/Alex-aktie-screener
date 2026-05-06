@@ -1,7 +1,6 @@
 import streamlit as st
 import yfinance as yf
 import pandas as pd
-import numpy as np
 from datetime import datetime
 
 st.set_page_config(page_title="Value Dashboard", layout="wide")
@@ -51,7 +50,8 @@ def fetch_data(tickers):
 
             row = {
                 "Ticker": t,
-                "Bolag": f'<a href="{yahoo_url}" target="_blank" style="text-decoration:none; color:inherit;">{bolag_name}</a>',
+                "Bolag": bolag_name,           # vanlig sträng här
+                "Bolag_URL": yahoo_url,        # separat URL-kolumn för länken
                 "Sektor": info.get("sector", "N/A"),
                 "Pris": round(info.get("currentPrice", info.get("previousClose", 0)), 2),
                 "Forward P/E": round(info.get("forwardPE"), 2) if info.get("forwardPE") else None,
@@ -90,11 +90,24 @@ if not us_df.empty:
             us_df["Score"] += us_df[col].rank(ascending=weight > 0, pct=True) * weight
 
     top_us = us_df.nsmallest(10, "Score").round(2).copy()
+    
+    # Styling
     styled_us = top_us.style.map(style_adx, subset=['ADX'])
     
-    # Döljer index/numrering helt
-    html_us = styled_us.to_html(escape=False, index=False)
-    st.markdown(html_us, unsafe_allow_html=True)
+    # Visa med länkar via column config
+    st.dataframe(
+        styled_us,
+        use_container_width=True,
+        hide_index=True,
+        column_config={
+            "Bolag": st.column_config.TextColumn("Bolag"),
+            "Bolag_URL": st.column_config.LinkColumn(
+                "Bolag", 
+                help="Klicka för att gå till Yahoo Finance",
+                display_text=lambda x: top_us.loc[top_us["Bolag_URL"] == x, "Bolag"].iloc[0] if not top_us.empty else x
+            )
+        }
+    )
 
 # ====================== EUROPA ======================
 st.subheader("🇪🇺 Europa Top 10")
@@ -107,11 +120,23 @@ if not eu_df.empty:
             eu_df["Score"] += eu_df[col].rank(ascending=weight > 0, pct=True) * weight
 
     top_eu = eu_df.nsmallest(10, "Score").round(2).copy()
+    
     styled_eu = top_eu.style.map(style_adx, subset=['ADX'])
     
-    html_eu = styled_eu.to_html(escape=False, index=False)
-    st.markdown(html_eu, unsafe_allow_html=True)
+    st.dataframe(
+        styled_eu,
+        use_container_width=True,
+        hide_index=True,
+        column_config={
+            "Bolag_URL": st.column_config.LinkColumn(
+                "Bolag",
+                help="Klicka för att gå till Yahoo Finance",
+                display_text=lambda x: top_eu.loc[top_eu["Bolag_URL"] == x, "Bolag"].iloc[0] if not top_eu.empty else x
+            )
+        }
+    )
 
+# Resten av koden (färgkodning, förklaring etc.)
 st.markdown("""
 **ADX-färgkodning:**  
 <span style='color:#ff4d4d'> ■ 0–20</span> Svag trend!  |
