@@ -87,57 +87,13 @@ if not us_df.empty:
             us_df["Score"] += us_df[col].rank(ascending=weight > 0, pct=True) * weight
 
     top_us = us_df.nsmallest(10, "Score").round(2).copy()
-    
-    # Styling för ADX
     styled_us = top_us.style.map(style_adx, subset=['ADX'])
     
     st.dataframe(
         styled_us,
         use_container_width=True,
-        hide_index=True,
-        column_config={
-            "Bolag": st.column_config.TextColumn("Bolag", help="Kopiera namnet och sök på Yahoo Finance"),
-            "Ticker": st.column_config.TextColumn("Ticker", help="Klicka för att kopiera")
-        }
+        hide_index=True
     )
 
 # ====================== EUROPA ======================
-st.subheader("🇪🇺 Europa Top 10")
-eu_df = fetch_data(eu_tickers)
-
-if not eu_df.empty:
-    eu_df["Score"] = 0.0
-    for col, weight in [("EV/EBITDA", 1), ("PEG", 1), ("FCF Yield (%)", -1), ("ROE (%)", -1)]:
-        if col in eu_df.columns and eu_df[col].notna().any():
-            eu_df["Score"] += eu_df[col].rank(ascending=weight > 0, pct=True) * weight
-
-    top_eu = eu_df.nsmallest(10, "Score").round(2).copy()
-    styled_eu = top_eu.style.map(style_adx, subset=['ADX'])
-    
-    st.dataframe(
-        styled_eu,
-        use_container_width=True,
-        hide_index=True,
-        column_config={
-            "Bolag": st.column_config.TextColumn("Bolag", help="Kopiera namnet och sök på Yahoo Finance"),
-            "Ticker": st.column_config.TextColumn("Ticker", help="Klicka för att kopiera")
-        }
-    )
-
-st.markdown("""
-**ADX-färgkodning:**  
-<span style='color:#ff4d4d'>■ 0–20</span> Svag trend | 
-<span style='color:#ffcc00'>■ 25–30</span> Börjande trend | 
-<span style='color:#00cc66'>■ ≥50</span> Stark trend
-""", unsafe_allow_html=True)
-
-with st.expander("📘 Förklaring av indikatorerna"):
-    st.markdown("""
-    - **Forward P/E, PEG, EV/EBITDA**: Ju lägre desto mer undervärderad.  
-    - **ROE (%)**: Högre = bättre lönsamhet.  
-    - **FCF Yield (%)**: Högre = mer fritt kassaflöde.  
-    - **ADX**: Trendstyrka (färgkodad).  
-    - **Uppsida (%)**: Potentiell kursuppgång enligt analytiker.
-    """)
-
-st.caption("Kopiera Ticker
+st.subheader("🇪🇺 Europa Top
