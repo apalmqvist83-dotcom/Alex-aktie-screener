@@ -68,9 +68,9 @@ def fetch_data(tickers):
 def style_adx(val):
     if pd.isna(val):
         return ''
-    if val <= 20:
+    if val <= 20.9:
         return 'background-color: #ff4d4d; color: white; font-weight: bold'
-    elif 21 <= val <= 30:
+    elif 21 <= val <= 30.9:
         return 'background-color: #ffcc00; color: black; font-weight: bold'
     elif 31 <= val <= 50:
         return 'background-color: #00cc66; color: white; font-weight: bold'
@@ -116,7 +116,7 @@ if not eu_df.empty:
 
 st.markdown("""
 **ADX-färgkodning:**  
-<span style='color:#ff4d4d'>■ 0–20</span> Svag trend | 
+<span style='color:#ff4d4d'> | ■ 0–20</span> Svag trend | 
 <span style='color:#ffcc00'>■ 21–30</span> Börjande trend | 
 <span style='color:#00cc66'>■ 31-50</span> Stark trend
 """, unsafe_allow_html=True)
