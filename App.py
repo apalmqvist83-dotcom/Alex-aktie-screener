@@ -2,7 +2,7 @@ import streamlit as st
 import yfinance as yf
 import pandas as pd
 from datetime import datetime
-from zoneinfo import ZoneInfo   # <-- Ny import för CEST
+from zoneinfo import ZoneInfo
 
 st.set_page_config(page_title="Value Dashboard", layout="wide")
 st.title("🚀 Topp 10 Undervärderade Aktier")
@@ -147,12 +147,15 @@ if not eu_df.empty:
         }
     )
 
-# ====================== Övrigt ======================
+# ====================== ADX-färgkodning (nu staplad) ======================
 st.markdown("""
-**ADX-färgkodning:**  
-<span style='color:#ff4d4d'> ■ 0–20</span> Svag trend!  |
-<span style='color:#ffcc00'> ■ 21–30</span> Börjande trend!  |
-<span style='color:#00cc66'> ■ 31-50</span> Stark trend!   
+**ADX-färgkodning:**
+""", unsafe_allow_html=True)
+
+st.markdown("""
+<span style='color:#ff4d4d'>■</span> **0–20** Svag trend!  
+<span style='color:#ffcc00'>■</span> **21–30** Börjande trend!  
+<span style='color:#00cc66'>■</span> **31–50** Stark trend!
 """, unsafe_allow_html=True)
 
 with st.expander("📘 Förklaring av indikatorerna"):
