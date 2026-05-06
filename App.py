@@ -97,7 +97,6 @@ if not us_df.empty:
 
     top_us = us_df.nsmallest(10, "Score").copy()
     
-    # Viktigt: Inkludera Bolag_URL så länken fungerar
     display_columns = ["Ticker", "Bolag", "Bolag_URL", "Sektor", "Pris", "Forward P/E", "PEG", 
                       "EV/EBITDA", "ROE (%)", "D/E", "FCF Yield (%)", "ADX", "Uppsida (%)"]
     
@@ -108,6 +107,8 @@ if not us_df.empty:
         styled_us,
         use_container_width=True,
         hide_index=True,
+        column_order=["Ticker", "Bolag", "Sektor", "Pris", "Forward P/E", "PEG", 
+                     "EV/EBITDA", "ROE (%)", "D/E", "FCF Yield (%)", "ADX", "Uppsida (%)"],
         column_config={
             "Bolag_URL": st.column_config.LinkColumn(
                 "Bolag", 
@@ -148,6 +149,8 @@ if not eu_df.empty:
         styled_eu,
         use_container_width=True,
         hide_index=True,
+        column_order=["Ticker", "Bolag", "Sektor", "Pris", "Forward P/E", "PEG", 
+                     "EV/EBITDA", "ROE (%)", "D/E", "FCF Yield (%)", "ADX", "Uppsida (%)"],
         column_config={
             "Bolag_URL": st.column_config.LinkColumn(
                 "Bolag", 
@@ -167,10 +170,7 @@ if not eu_df.empty:
     )
 
 # ====================== ADX-färgkodning ======================
-st.markdown("""
-**ADX-färgkodning:**
-""", unsafe_allow_html=True)
-
+st.markdown("**ADX-färgkodning:**", unsafe_allow_html=True)
 st.markdown("""
 <span style='color:#ff4d4d'>■</span> **0–20** Svag trend!  
 <span style='color:#ffcc00'>■</span> **21–30** Börjande trend!  
