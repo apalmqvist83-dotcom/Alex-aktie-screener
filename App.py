@@ -53,16 +53,16 @@ def fetch_data(tickers):
                 "Bolag": bolag_name,
                 "Bolag_URL": yahoo_url,
                 "Sektor": info.get("sector", "N/A"),
-                "Pris": round(info.get("currentPrice", info.get("previousClose", 0)), 2),
-                "Forward P/E": round(info.get("forwardPE"), 2) if info.get("forwardPE") else None,
-                "PEG": round(info.get("pegRatio"), 2) if info.get("pegRatio") else None,
-                "EV/EBITDA": round(info.get("enterpriseToEbitda"), 2) if info.get("enterpriseToEbitda") else None,
-                "ROE (%)": round(info.get("returnOnEquity") * 100, 1) if info.get("returnOnEquity") else None,
-                "D/E": round(info.get("debtToEquity"), 2) if info.get("debtToEquity") else None,
-                "FCF Yield (%)": round((info.get("freeCashflow", 0) / info.get("enterpriseValue", 1)) * 100, 2) 
+                "Pris": info.get("currentPrice") or info.get("previousClose"),
+                "Forward P/E": info.get("forwardPE"),
+                "PEG": info.get("pegRatio"),
+                "EV/EBITDA": info.get("enterpriseToEbitda"),
+                "ROE (%)": info.get("returnOnEquity") * 100 if info.get("returnOnEquity") else None,
+                "D/E": info.get("debtToEquity"),
+                "FCF Yield (%)": (info.get("freeCashflow", 0) / info.get("enterpriseValue", 1)) * 100 
                                  if info.get("enterpriseValue") and info.get("freeCashflow") else None,
                 "ADX": adx_value,
-                "Uppsida (%)": round((info.get("targetMeanPrice") / info.get("currentPrice") - 1) * 100, 1) 
+                "Uppsida (%)": (info.get("targetMeanPrice") / info.get("currentPrice") - 1) * 100 
                                if info.get("targetMeanPrice") and info.get("currentPrice") else None
             }
             data.append(row)
@@ -91,7 +91,7 @@ if not us_df.empty:
         if col in us_df.columns and us_df[col].notna().any():
             us_df["Score"] += us_df[col].rank(ascending=weight > 0, pct=True) * weight
 
-    top_us = us_df.nsmallest(10, "Score").round(2).copy()
+    top_us = us_df.nsmallest(10, "Score").copy()
     styled_us = top_us.style.map(style_adx, subset=['ADX'])
 
     st.dataframe(
@@ -100,10 +100,19 @@ if not us_df.empty:
         hide_index=True,
         column_config={
             "Bolag_URL": st.column_config.LinkColumn(
-                "Bolag",                    # Kolumnrubrik
+                "Bolag",
                 help="Öppna på Yahoo Finance",
-                display_text="Bolag"        # Använder värdet från "Bolag"-kolumnen
-            )
+                display_text="Bolag"
+            ),
+            "Pris": st.column_config.NumberColumn("Pris", format=None),
+            "Forward P/E": st.column_config.NumberColumn("Forward P/E", format=None),
+            "PEG": st.column_config.NumberColumn("PEG", format=None),
+            "EV/EBITDA": st.column_config.NumberColumn("EV/EBITDA", format=None),
+            "ROE (%)": st.column_config.NumberColumn("ROE (%)", format=None),
+            "D/E": st.column_config.NumberColumn("D/E", format=None),
+            "FCF Yield (%)": st.column_config.NumberColumn("FCF Yield (%)", format=None),
+            "ADX": st.column_config.NumberColumn("ADX", format=None),
+            "Uppsida (%)": st.column_config.NumberColumn("Uppsida (%)", format=None),
         }
     )
 
@@ -117,7 +126,7 @@ if not eu_df.empty:
         if col in eu_df.columns and eu_df[col].notna().any():
             eu_df["Score"] += eu_df[col].rank(ascending=weight > 0, pct=True) * weight
 
-    top_eu = eu_df.nsmallest(10, "Score").round(2).copy()
+    top_eu = eu_df.nsmallest(10, "Score").copy()
     styled_eu = top_eu.style.map(style_adx, subset=['ADX'])
 
     st.dataframe(
@@ -129,7 +138,16 @@ if not eu_df.empty:
                 "Bolag",
                 help="Öppna på Yahoo Finance",
                 display_text="Bolag"
-            )
+            ),
+            "Pris": st.column_config.NumberColumn("Pris", format=None),
+            "Forward P/E": st.column_config.NumberColumn("Forward P/E", format=None),
+            "PEG": st.column_config.NumberColumn("PEG", format=None),
+            "EV/EBITDA": st.column_config.NumberColumn("EV/EBITDA", format=None),
+            "ROE (%)": st.column_config.NumberColumn("ROE (%)", format=None),
+            "D/E": st.column_config.NumberColumn("D/E", format=None),
+            "FCF Yield (%)": st.column_config.NumberColumn("FCF Yield (%)", format=None),
+            "ADX": st.column_config.NumberColumn("ADX", format=None),
+            "Uppsida (%)": st.column_config.NumberColumn("Uppsida (%)", format=None),
         }
     )
 
