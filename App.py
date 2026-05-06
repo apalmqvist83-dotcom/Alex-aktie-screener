@@ -2,10 +2,14 @@ import streamlit as st
 import yfinance as yf
 import pandas as pd
 from datetime import datetime
+from zoneinfo import ZoneInfo   # <-- Ny import för CEST
 
 st.set_page_config(page_title="Value Dashboard", layout="wide")
 st.title("🚀 Topp 10 Undervärderade Aktier")
-st.write(f"Uppdaterad: {datetime.now().strftime('%Y-%m-%d %H:%M')} (uppdateras vid refresh)")
+
+# CEST-tid (UTC+2)
+cest_time = datetime.now(ZoneInfo("Europe/Stockholm"))
+st.write(f"Uppdaterad: {cest_time.strftime('%Y-%m-%d %H:%M')} CEST (uppdateras vid refresh)")
 
 # === TICKERS ===
 us_tickers = ["ALL", "MU", "GEV", "RYAAY", "ACGL", "UHS", "T", "CINF", "ALV", "CTSH", "JPM", "BAC", "LEN", "MOS", "PDD"]
