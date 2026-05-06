@@ -8,31 +8,27 @@ st.set_page_config(page_title="Value Dashboard", layout="wide")
 st.title("🚀 Automatisk Value Dashboard - Topp 10 Undervärderade Aktier")
 st.write(f"Uppdaterad: {datetime.now().strftime('%Y-%m-%d %H:%M')} (uppdateras vid refresh)")
 
-# === TICKERS (utöka gärna själv) ===
+# === TICKERS ===
 us_tickers = ["ALL", "MU", "GEV", "RYAAY", "ACGL", "UHS", "T", "CINF", "ALV", "CTSH", "JPM", "BAC", "LEN", "MOS", "PDD"]
 eu_tickers = ["SAN.PA", "DNO.OL", "DOM.ST", "ALV.ST", "RYAAY", "SBC.MI", "DEZ.DE", "BSGR.AS", "COLO-B.CO", "HAYPP.ST"]
 
 def calculate_adx(hist, period=14):
-    """Enkel manuell ADX-beräkning utan extra paket"""
-    if len(hist) < period * 2:
+    if len(hist) < period * 2 or hist.empty:
         return None
     high = hist['High']
     low = hist['Low']
     close = hist['Close']
     
-    # True Range
     tr1 = high - low
     tr2 = abs(high - close.shift(1))
     tr3 = abs(low - close.shift(1))
     tr = pd.concat([tr1, tr2, tr3], axis=1).max(axis=1)
     
-    # Directional Movement
     plus_dm = high - high.shift(1)
     minus_dm = low.shift(1) - low
     plus_dm = plus_dm.where((plus_dm > minus_dm) & (plus_dm > 0), 0)
     minus_dm = minus_dm.where((minus_dm > plus_dm) & (minus_dm > 0), 0)
     
-    # Smoothed values (Wilder's method)
     atr = tr.ewm(alpha=1/period, adjust=False).mean()
     plus_di = 100 * (plus_dm.ewm(alpha=1/period, adjust=False).mean() / atr)
     minus_di = 100 * (minus_dm.ewm(alpha=1/period, adjust=False).mean() / atr)
@@ -49,8 +45,7 @@ def fetch_data(tickers):
             stock = yf.Ticker(t)
             info = stock.info
             hist = stock.history(period="3mo")
-            
-            adx_value = calculate_adx(hist) if not hist.empty else None
+            adx_value = calculate_adx(hist)
 
             row = {
                 "Ticker": t,
@@ -71,6 +66,17 @@ def fetch_data(tickers):
             continue
     return pd.DataFrame(data)
 
+def style_adx(val):
+    if pd.isna(val):
+        return ''
+    if val <= 20:
+        return 'background-color: #ff4d4d; color: white'
+    elif 25 <= val <= 30:
+        return 'background-color: #ffcc00; color: black'
+    elif val >= 50:
+        return 'background-color: #00cc66; color: white'
+    return ''
+
 # ====================== USA ======================
 st.subheader("🇺🇸 USA Top 10")
 us_df = fetch_data(us_tickers)
@@ -78,18 +84,19 @@ us_df = fetch_data(us_tickers)
 if not us_df.empty:
     us_df["Score"] = 0.0
     for col, weight in [("EV/EBITDA", 1), ("PEG", 1), ("FCF Yield (%)", -1), ("ROE (%)", -1)]:
-        if col in us_df.columns:
-            us_df["Score"] += us_df[col].rank(ascending=True if weight > 0 else False, pct=True) * weight
-    
+        if col in us_df.columns and us_df[col].notna().any():
+            us_df["Score"] += us_df[col].rank(ascending=weight > 0, pct=True) * weight
+
     top_us = us_df.nsmallest(10, "Score").round(2).copy()
-    top_us["Bolag"] = top_us.apply(lambda x: f'<a href="https://finance.yahoo.com/quote/{x["Ticker"]}" target="_blank">{x["Bolag"]}</a>', axis=1)
     
-    st.dataframe(
-        top_us.drop(columns=["Score", "Ticker"]),
-        use_container_width=True,
-        hide_index=True,
-        column_config={"Bolag": st.column_config.TextColumn("Bolag")}
+    # Skapa klickbara länkar
+    top_us["Bolag"] = top_us.apply(
+        lambda x: f'<a href="https://finance.yahoo.com/quote/{x["Ticker"]}" target="_blank" style="color:inherit;text-decoration:none;">{x["Bolag"]}</a>', 
+        axis=1
     )
+    
+    # Visa med HTML-stöd
+    st.markdown(top_us.drop(columns=["Score", "Ticker"]).to_html(escape=False, index=False), unsafe_allow_html=True)
 
 # ====================== EUROPA ======================
 st.subheader("🇪🇺 Europa Top 10")
@@ -98,40 +105,34 @@ eu_df = fetch_data(eu_tickers)
 if not eu_df.empty:
     eu_df["Score"] = 0.0
     for col, weight in [("EV/EBITDA", 1), ("PEG", 1), ("FCF Yield (%)", -1), ("ROE (%)", -1)]:
-        if col in eu_df.columns:
-            eu_df["Score"] += eu_df[col].rank(ascending=True if weight > 0 else False, pct=True) * weight
-    
-    top_eu = eu_df.nsmallest(10, "Score").round(2).copy()
-    top_eu["Bolag"] = top_eu.apply(lambda x: f'<a href="https://finance.yahoo.com/quote/{x["Ticker"]}" target="_blank">{x["Bolag"]}</a>', axis=1)
-    
-    st.dataframe(
-        top_eu.drop(columns=["Score", "Ticker"]),
-        use_container_width=True,
-        hide_index=True,
-        column_config={"Bolag": st.column_config.TextColumn("Bolag")}
-    )
+        if col in eu_df.columns and eu_df[col].notna().any():
+            eu_df["Score"] += eu_df[col].rank(ascending=weight > 0, pct=True) * weight
 
-# ADX-färgkodning
+    top_eu = eu_df.nsmallest(10, "Score").round(2).copy()
+    top_eu["Bolag"] = top_eu.apply(
+        lambda x: f'<a href="https://finance.yahoo.com/quote/{x["Ticker"]}" target="_blank" style="color:inherit;text-decoration:none;">{x["Bolag"]}</a>', 
+        axis=1
+    )
+    
+    st.markdown(top_eu.drop(columns=["Score", "Ticker"]).to_html(escape=False, index=False), unsafe_allow_html=True)
+
+# ADX förklaring + färg
 st.markdown("""
-**ADX-färgkodning:**  
-<span style='color:red'>0–20</span>: Svag trend (röd) | 
-<span style='color:orange'>25–30</span>: Börjande trend (gul) | 
-<span style='color:green'>50–100</span>: Stark trend (grön)
+**ADX-färgkodning i tabellen:**  
+<span style='color:#ff4d4d'>■ 0–20</span> Svag trend | 
+<span style='color:#ffcc00'>■ 25–30</span> Börjande trend | 
+<span style='color:#00cc66'>■ 50–100</span> Stark trend
 """, unsafe_allow_html=True)
 
-# Förklaringar
 with st.expander("📘 Förklaring av indikatorerna"):
     st.markdown("""
-    - **Forward P/E**: Förväntat pris/vinst. Lägre = billigare.  
-    - **PEG**: Tar hänsyn till tillväxt. **<1** = undervärderad med tillväxt.  
-    - **EV/EBITDA**: Bra värderingsmått. Lägre värde = mer prisvärd.  
-    - **ROE (%)**: Hur bra bolaget använder eget kapital. Högre = bättre.  
-    - **D/E**: Skuldsättning. Lägre = stabilare.  
-    - **FCF Yield (%)**: Fritt kassaflöde i procent. Högre = mer kontanter.  
-    - **ADX**: Trendstyrka (0–100).  
-    - **Uppsida (%)**: Analytikernas genomsnittliga kursmål.
+    - **Forward P/E**, **PEG**, **EV/EBITDA**: Värderingsmått – lägre värde = mer undervärderad.  
+    - **ROE (%)**: Lönsamhet på eget kapital.  
+    - **FCF Yield (%)**: Hur mycket fritt kassaflöde bolaget genererar.  
+    - **ADX**: Trendstyrka (färgkodad i tabellen).  
+    - **Uppsida (%)**: Potentiell uppgång enligt analytiker.
     """)
 
-st.caption("Data från Yahoo Finance • Gör alltid egen analys • Uppdateras vid varje sidvisning")
+st.caption("Klicka på bolagsnamnet för att gå till Yahoo Finance • Data uppdateras vid refresh")
 if st.button("🔄 Uppdatera data nu"):
-    st.rerun()
+    st.r
