@@ -92,8 +92,9 @@ if not us_df.empty:
     top_us = us_df.nsmallest(10, "Score").round(2).copy()
     styled_us = top_us.style.map(style_adx, subset=['ADX'])
     
-    # Rendera som HTML för att hyperlänkarna ska fungera
-    st.markdown(styled_us.to_html(escape=False, index=False), unsafe_allow_html=True)
+    # Döljer index/numrering helt
+    html_us = styled_us.to_html(escape=False, index=False)
+    st.markdown(html_us, unsafe_allow_html=True)
 
 # ====================== EUROPA ======================
 st.subheader("🇪🇺 Europa Top 10")
@@ -108,7 +109,8 @@ if not eu_df.empty:
     top_eu = eu_df.nsmallest(10, "Score").round(2).copy()
     styled_eu = top_eu.style.map(style_adx, subset=['ADX'])
     
-    st.markdown(styled_eu.to_html(escape=False, index=False), unsafe_allow_html=True)
+    html_eu = styled_eu.to_html(escape=False, index=False)
+    st.markdown(html_eu, unsafe_allow_html=True)
 
 st.markdown("""
 **ADX-färgkodning:**  
