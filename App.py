@@ -54,11 +54,11 @@ def fetch_data(tickers):
                 "Forward P/E": round(info.get("forwardPE"), 2) if info.get("forwardPE") else None,
                 "PEG": round(info.get("pegRatio"), 2) if info.get("pegRatio") else None,
                 "EV/EBITDA": round(info.get("enterpriseToEbitda"), 2) if info.get("enterpriseToEbitda") else None,
-                "ROE (%)": round(info.get("returnOnEquity") * 100, 1) if info.get("returnOnEquity") else None,
+                "ROE (%)": round(info.get("returnOnEquity") * 100, 2) if info.get("returnOnEquity") else None,
                 "D/E": round(info.get("debtToEquity"), 2) if info.get("debtToEquity") else None,
                 "FCF Yield (%)": round((info.get("freeCashflow", 0) / info.get("enterpriseValue", 1)) * 100, 2) if info.get("enterpriseValue") and info.get("freeCashflow") else None,
                 "ADX": adx_value,
-                "Uppsida (%)": round((info.get("targetMeanPrice") / info.get("currentPrice") - 1) * 100, 1) if info.get("targetMeanPrice") and info.get("currentPrice") else None
+                "Uppsida (%)": round((info.get("targetMeanPrice") / info.get("currentPrice") - 1) * 100, 2) if info.get("targetMeanPrice") and info.get("currentPrice") else None
             }
             data.append(row)
         except:
@@ -89,10 +89,16 @@ if not us_df.empty:
     top_us = us_df.nsmallest(10, "Score").round(2).copy()
     styled_us = top_us.style.map(style_adx, subset=['ADX'])
     
+    # Lägg till klickbar länk-kolumn
+    top_us["Länk"] = top_us["Ticker"].apply(lambda x: f'<a href="https://finance.yahoo.com/quote/{x}" target="_blank">🔗 Yahoo</a>')
+    
     st.dataframe(
         styled_us,
         use_container_width=True,
-        hide_index=True
+        hide_index=True,
+        column_config={
+            "Länk": st.column_config.TextColumn("Länk", help="Klicka för att öppna Yahoo Finance")
+        }
     )
 
 # ====================== EUROPA ======================
@@ -108,10 +114,15 @@ if not eu_df.empty:
     top_eu = eu_df.nsmallest(10, "Score").round(2).copy()
     styled_eu = top_eu.style.map(style_adx, subset=['ADX'])
     
+    top_eu["Länk"] = top_eu["Ticker"].apply(lambda x: f'<a href="https://finance.yahoo.com/quote/{x}" target="_blank">🔗 Yahoo</a>')
+    
     st.dataframe(
         styled_eu,
         use_container_width=True,
-        hide_index=True
+        hide_index=True,
+        column_config={
+            "Länk": st.column_config.TextColumn("Länk", help="Klicka för att öppna Yahoo Finance")
+        }
     )
 
 st.markdown("""
