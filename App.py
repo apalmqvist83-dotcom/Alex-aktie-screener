@@ -54,8 +54,7 @@ def fetch_data(tickers):
 
             row = {
                 "Ticker": t,
-                "Bolag": bolag_name,
-                "Bolag_URL": yahoo_url,
+                "Bolag": f'<a href="{yahoo_url}" target="_blank" style="text-decoration:none; color:inherit; font-weight:inherit;">{bolag_name}</a>',
                 "Sektor": info.get("sector", "N/A"),
                 "Pris": round(info.get("currentPrice") or info.get("previousClose"), 2),
                 "Forward P/E": round(info.get("forwardPE"), 2) if info.get("forwardPE") is not None else None,
@@ -96,11 +95,7 @@ if not us_df.empty:
             us_df["Score"] += us_df[col].rank(ascending=weight > 0, pct=True) * weight
 
     top_us = us_df.nsmallest(10, "Score").copy()
-    
-    display_df = top_us[["Ticker", "Bolag", "Bolag_URL", "Sektor", "Pris", "Forward P/E", "PEG", 
-                        "EV/EBITDA", "ROE (%)", "D/E", "FCF Yield (%)", "ADX", "Uppsida (%)"]]
-    
-    styled_us = display_df.style.map(style_adx, subset=['ADX'])
+    styled_us = top_us.style.map(style_adx, subset=['ADX'])
 
     st.dataframe(
         styled_us,
@@ -109,11 +104,7 @@ if not us_df.empty:
         column_order=["Ticker", "Bolag", "Sektor", "Pris", "Forward P/E", "PEG", 
                      "EV/EBITDA", "ROE (%)", "D/E", "FCF Yield (%)", "ADX", "Uppsida (%)"],
         column_config={
-            "Bolag_URL": st.column_config.LinkColumn(
-                "Bolag", 
-                help="Öppna på Yahoo Finance",
-                display_text="Bolag"
-            ),
+            "Bolag": st.column_config.TextColumn("Bolag"),
             "Pris": st.column_config.NumberColumn("Pris", format="%.2f"),
             "Forward P/E": st.column_config.NumberColumn("Forward P/E", format="%.2f"),
             "PEG": st.column_config.NumberColumn("PEG", format="%.2f"),
@@ -137,11 +128,7 @@ if not eu_df.empty:
             eu_df["Score"] += eu_df[col].rank(ascending=weight > 0, pct=True) * weight
 
     top_eu = eu_df.nsmallest(10, "Score").copy()
-    
-    display_df = top_eu[["Ticker", "Bolag", "Bolag_URL", "Sektor", "Pris", "Forward P/E", "PEG", 
-                        "EV/EBITDA", "ROE (%)", "D/E", "FCF Yield (%)", "ADX", "Uppsida (%)"]]
-    
-    styled_eu = display_df.style.map(style_adx, subset=['ADX'])
+    styled_eu = top_eu.style.map(style_adx, subset=['ADX'])
 
     st.dataframe(
         styled_eu,
@@ -150,11 +137,7 @@ if not eu_df.empty:
         column_order=["Ticker", "Bolag", "Sektor", "Pris", "Forward P/E", "PEG", 
                      "EV/EBITDA", "ROE (%)", "D/E", "FCF Yield (%)", "ADX", "Uppsida (%)"],
         column_config={
-            "Bolag_URL": st.column_config.LinkColumn(
-                "Bolag", 
-                help="Öppna på Yahoo Finance",
-                display_text="Bolag"
-            ),
+            "Bolag": st.column_config.TextColumn("Bolag"),
             "Pris": st.column_config.NumberColumn("Pris", format="%.2f"),
             "Forward P/E": st.column_config.NumberColumn("Forward P/E", format="%.2f"),
             "PEG": st.column_config.NumberColumn("PEG", format="%.2f"),
