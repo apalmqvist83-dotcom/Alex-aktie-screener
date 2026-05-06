@@ -1,7 +1,6 @@
 import streamlit as st
 import yfinance as yf
 import pandas as pd
-import numpy as np
 from datetime import datetime
 
 st.set_page_config(page_title="Value Dashboard", layout="wide")
@@ -34,7 +33,7 @@ def calculate_adx(hist, period=14):
     
     dx = (abs(plus_di - minus_di) / (plus_di + minus_di)) * 100
     adx = dx.ewm(alpha=1/period, adjust=False).mean()
-    return round(adx.iloc[-1], 1)
+    return round(adx.iloc[-1], 2)   # Ändrad till 2 decimaler
 
 @st.cache_data(ttl=3600)
 def fetch_data(tickers):
@@ -54,11 +53,13 @@ def fetch_data(tickers):
                 "Forward P/E": round(info.get("forwardPE"), 2) if info.get("forwardPE") else None,
                 "PEG": round(info.get("pegRatio"), 2) if info.get("pegRatio") else None,
                 "EV/EBITDA": round(info.get("enterpriseToEbitda"), 2) if info.get("enterpriseToEbitda") else None,
-                "ROE (%)": round(info.get("returnOnEquity") * 100, 1) if info.get("returnOnEquity") else None,
+                "ROE (%)": round(info.get("returnOnEquity") * 100, 2) if info.get("returnOnEquity") else None,   # Ändrad till 2
                 "D/E": round(info.get("debtToEquity"), 2) if info.get("debtToEquity") else None,
-                "FCF Yield (%)": round((info.get("freeCashflow", 0) / info.get("enterpriseValue", 1)) * 100, 2) if info.get("enterpriseValue") and info.get("freeCashflow") else None,
+                "FCF Yield (%)": round((info.get("freeCashflow", 0) / info.get("enterpriseValue", 1)) * 100, 2) 
+                                 if info.get("enterpriseValue") and info.get("freeCashflow") else None,
                 "ADX": adx_value,
-                "Uppsida (%)": round((info.get("targetMeanPrice") / info.get("currentPrice") - 1) * 100, 1) if info.get("targetMeanPrice") and info.get("currentPrice") else None
+                "Uppsida (%)": round((info.get("targetMeanPrice") / info.get("currentPrice") - 1) * 100, 2) 
+                               if info.get("targetMeanPrice") and info.get("currentPrice") else None
             }
             data.append(row)
         except:
@@ -87,13 +88,13 @@ if not us_df.empty:
             us_df["Score"] += us_df[col].rank(ascending=weight > 0, pct=True) * weight
 
     top_us = us_df.nsmallest(10, "Score").round(2).copy()
-    styled_us = top_us.style.map(style_adx, subset=['ADX'])
     
-    st.dataframe(
-        styled_us,
-        use_container_width=True,
-        hide_index=True
-    )
+    # Tvinga 2 decimaler vid visning
+    styled_us = top_us.style.map(style_adx, subset=['ADX']) \
+                           .format("{:.2f}", subset=["Pris", "Forward P/E", "PEG", "EV/EBITDA", 
+                                                    "ROE (%)", "D/E", "FCF Yield (%)", "ADX", "Uppsida (%)"])
+
+    st.dataframe(styled_us, use_container_width=True, hide_index=True)
 
 # ====================== EUROPA ======================
 st.subheader("🇪🇺 Europa Top 10")
@@ -106,13 +107,12 @@ if not eu_df.empty:
             eu_df["Score"] += eu_df[col].rank(ascending=weight > 0, pct=True) * weight
 
     top_eu = eu_df.nsmallest(10, "Score").round(2).copy()
-    styled_eu = top_eu.style.map(style_adx, subset=['ADX'])
     
-    st.dataframe(
-        styled_eu,
-        use_container_width=True,
-        hide_index=True
-    )
+    styled_eu = top_eu.style.map(style_adx, subset=['ADX']) \
+                           .format("{:.2f}", subset=["Pris", "Forward P/E", "PEG", "EV/EBITDA", 
+                                                    "ROE (%)", "D/E", "FCF Yield (%)", "ADX", "Uppsida (%)"])
+
+    st.dataframe(styled_eu, use_container_width=True, hide_index=True)
 
 st.markdown("""
 **ADX-färgkodning:**  
