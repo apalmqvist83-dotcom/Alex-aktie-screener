@@ -18,7 +18,6 @@ def calculate_adx(hist, period=14):
     high = hist['High']
     low = hist['Low']
     close = hist['Close']
-    
     tr1 = high - low
     tr2 = abs(high - close.shift(1))
     tr3 = abs(low - close.shift(1))
@@ -70,11 +69,11 @@ def style_adx(val):
     if pd.isna(val):
         return ''
     if val <= 20:
-        return 'background-color: #ff4d4d; color: white'
+        return 'background-color: #ff4d4d; color: white; font-weight: bold'
     elif 25 <= val <= 30:
-        return 'background-color: #ffcc00; color: black'
+        return 'background-color: #ffcc00; color: black; font-weight: bold'
     elif val >= 50:
-        return 'background-color: #00cc66; color: white'
+        return 'background-color: #00cc66; color: white; font-weight: bold'
     return ''
 
 # ====================== USA ======================
@@ -89,14 +88,18 @@ if not us_df.empty:
 
     top_us = us_df.nsmallest(10, "Score").round(2).copy()
     
-    # Skapa klickbara länkar
-    top_us["Bolag"] = top_us.apply(
-        lambda x: f'<a href="https://finance.yahoo.com/quote/{x["Ticker"]}" target="_blank" style="color:inherit;text-decoration:none;">{x["Bolag"]}</a>', 
-        axis=1
-    )
+    # Styling för ADX
+    styled_us = top_us.style.map(style_adx, subset=['ADX'])
     
-    # Visa med HTML-stöd
-    st.markdown(top_us.drop(columns=["Score", "Ticker"]).to_html(escape=False, index=False), unsafe_allow_html=True)
+    st.dataframe(
+        styled_us,
+        use_container_width=True,
+        hide_index=True,
+        column_config={
+            "Bolag": st.column_config.TextColumn("Bolag", help="Kopiera namnet och sök på Yahoo Finance"),
+            "Ticker": st.column_config.TextColumn("Ticker", help="Klicka för att kopiera")
+        }
+    )
 
 # ====================== EUROPA ======================
 st.subheader("🇪🇺 Europa Top 10")
@@ -109,30 +112,32 @@ if not eu_df.empty:
             eu_df["Score"] += eu_df[col].rank(ascending=weight > 0, pct=True) * weight
 
     top_eu = eu_df.nsmallest(10, "Score").round(2).copy()
-    top_eu["Bolag"] = top_eu.apply(
-        lambda x: f'<a href="https://finance.yahoo.com/quote/{x["Ticker"]}" target="_blank" style="color:inherit;text-decoration:none;">{x["Bolag"]}</a>', 
-        axis=1
-    )
+    styled_eu = top_eu.style.map(style_adx, subset=['ADX'])
     
-    st.markdown(top_eu.drop(columns=["Score", "Ticker"]).to_html(escape=False, index=False), unsafe_allow_html=True)
+    st.dataframe(
+        styled_eu,
+        use_container_width=True,
+        hide_index=True,
+        column_config={
+            "Bolag": st.column_config.TextColumn("Bolag", help="Kopiera namnet och sök på Yahoo Finance"),
+            "Ticker": st.column_config.TextColumn("Ticker", help="Klicka för att kopiera")
+        }
+    )
 
-# ADX förklaring + färg
 st.markdown("""
-**ADX-färgkodning i tabellen:**  
+**ADX-färgkodning:**  
 <span style='color:#ff4d4d'>■ 0–20</span> Svag trend | 
 <span style='color:#ffcc00'>■ 25–30</span> Börjande trend | 
-<span style='color:#00cc66'>■ 50–100</span> Stark trend
+<span style='color:#00cc66'>■ ≥50</span> Stark trend
 """, unsafe_allow_html=True)
 
 with st.expander("📘 Förklaring av indikatorerna"):
     st.markdown("""
-    - **Forward P/E**, **PEG**, **EV/EBITDA**: Värderingsmått – lägre värde = mer undervärderad.  
-    - **ROE (%)**: Lönsamhet på eget kapital.  
-    - **FCF Yield (%)**: Hur mycket fritt kassaflöde bolaget genererar.  
-    - **ADX**: Trendstyrka (färgkodad i tabellen).  
-    - **Uppsida (%)**: Potentiell uppgång enligt analytiker.
+    - **Forward P/E, PEG, EV/EBITDA**: Ju lägre desto mer undervärderad.  
+    - **ROE (%)**: Högre = bättre lönsamhet.  
+    - **FCF Yield (%)**: Högre = mer fritt kassaflöde.  
+    - **ADX**: Trendstyrka (färgkodad).  
+    - **Uppsida (%)**: Potentiell kursuppgång enligt analytiker.
     """)
 
-st.caption("Klicka på bolagsnamnet för att gå till Yahoo Finance • Data uppdateras vid refresh")
-if st.button("🔄 Uppdatera data nu"):
-    st.r
+st.caption("Kopiera Ticker
