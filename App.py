@@ -31,7 +31,7 @@ def calculate_adx(hist, period=14):
     plus_di = 100 * (plus_dm.ewm(alpha=1/period, adjust=False).mean() / atr)
     minus_di = 100 * (minus_dm.ewm(alpha=1/period, adjust=False).mean() / atr)
     
-    dx = (abs(plus_di - minus_di) / (plus_di + minus_dm)) * 100
+    dx = (abs(plus_di - minus_di) / (plus_di + minus_di)) * 100
     adx = dx.ewm(alpha=1/period, adjust=False).mean()
     return round(adx.iloc[-1], 2)
 
@@ -58,5 +58,4 @@ def fetch_data(tickers):
                 "FCF Yield (%)": round((info.get("freeCashflow", 0) / info.get("enterpriseValue", 1)) * 100, 2) 
                                  if info.get("enterpriseValue") and info.get("freeCashflow") else None,
                 "ADX": adx_value,
-                "Uppsida (%)": round((info.get("targetMeanPrice") / info.get("currentPrice", 1) - 1) * 100, 2) 
-                               if info.get("
+                "Uppsida (%)": round((info.get("targetMeanPrice") / info.get("currentPrice", 1) - 1) *
