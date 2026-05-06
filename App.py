@@ -38,11 +38,17 @@ def calculate_adx(hist, period=14):
 @st.cache_data(ttl=3600)
 def fetch_data(tickers):
     data = []
+    errors = []
     for t in tickers:
         try:
             stock = yf.Ticker(t)
             info = stock.info
             hist = stock.history(period="3mo")
+            
+            if hist.empty:
+                errors.append(f"{t}: Ingen historikdata")
+                continue
+
             adx_value = calculate_adx(hist)
 
             row = {
@@ -62,16 +68,27 @@ def fetch_data(tickers):
                                if info.get("targetMeanPrice") and info.get("currentPrice") else None
             }
             data.append(row)
-        except:
+            
+        except Exception as e:
+            errors.append(f"{t}: {str(e)[:120]}")
             continue
-    return pd.DataFrame(data)
+    
+    df = pd.DataFrame(data)
+    
+    # Visa fel för debugging
+    if errors:
+        st.error(f"**Fel vid hämtning ({len(errors)} ticker(s)):**")
+        for err in errors[:15]:
+            st.caption(err)
+    
+    return df
 
 def style_adx(val):
     if pd.isna(val):
         return ''
     if val <= 20:
         return 'background-color: #ff4d4d; color: white; font-weight: bold'
-    elif 25 <= val <= 30:          # ← Denna rad var trasig tidigare
+    elif 25 <= val <= 30:
         return 'background-color: #ffcc00; color: black; font-weight: bold'
     elif val >= 50:
         return 'background-color: #00cc66; color: white; font-weight: bold'
