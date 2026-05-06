@@ -5,71 +5,46 @@ from datetime import datetime
 
 st.set_page_config(page_title="Value Dashboard", layout="wide")
 st.title("🚀 Automatisk Value Dashboard - Topp 10 Undervärderade Aktier")
-st.write(f"Uppdaterad: {datetime.now().strftime('%Y-%m-%d %H:%M')} (uppdateras vid refresh)")
+st.write(f"Uppdaterad: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
 
-# === TICKERS ===
-us_tickers = ["ALL", "MU", "RYAAY", "ACGL", "UHS", "T", "JPM", "BAC", "MOS", "PDD"]
-eu_tickers = ["SAN.PA", "ALV.ST", "DOM.ST", "DNO.OL", "RYAAY", "BSGR.AS"]
+# Tickers
+us_tickers = ["ALL", "MU", "RYAAY", "ACGL", "UHS"]
+eu_tickers = ["SAN.PA", "ALV.ST", "DOM.ST"]
 
-def calculate_adx(hist, period=14):
-    if hist.empty or len(hist) < 30:
-        return None
-    high = hist['High']
-    low = hist['Low']
-    close = hist['Close']
-    tr1 = high - low
-    tr2 = abs(high - close.shift(1))
-    tr3 = abs(low - close.shift(1))
-    tr = pd.concat([tr1, tr2, tr3], axis=1).max(axis=1)
-    
-    plus_dm = high - high.shift(1)
-    minus_dm = low.shift(1) - low
-    plus_dm = plus_dm.where((plus_dm > minus_dm) & (plus_dm > 0), 0)
-    minus_dm = minus_dm.where((minus_dm > plus_dm) & (minus_dm > 0), 0)
-    
-    atr = tr.ewm(alpha=1/period, adjust=False).mean()
-    plus_di = 100 * (plus_dm.ewm(alpha=1/period, adjust=False).mean() / atr)
-    minus_di = 100 * (minus_dm.ewm(alpha=1/period, adjust=False).mean() / atr)
-    
-    dx = (abs(plus_di - minus_di) / (plus_di + minus_di)) * 100
-    adx = dx.ewm(alpha=1/period, adjust=False).mean()
-    return round(adx.iloc[-1], 1)
-
-@st.cache_data(ttl=1800)
+@st.cache_data(ttl=600)
 def fetch_data(tickers):
     data = []
     for t in tickers:
         try:
             stock = yf.Ticker(t)
             info = stock.info
-            hist = stock.history(period="3mo")
-            adx_value = calculate_adx(hist)
-
             row = {
                 "Ticker": t,
                 "Bolag": info.get("longName", t),
-                "Sektor": info.get("sector", "N/A"),
-                "Pris": round(info.get("currentPrice", info.get("previousClose", 0)), 2),
+                "Pris": round(info.get("currentPrice", 0), 2),
                 "Forward P/E": round(info.get("forwardPE"), 2) if info.get("forwardPE") else None,
-                "PEG": round(info.get("pegRatio"), 2) if info.get("pegRatio") else None,
                 "EV/EBITDA": round(info.get("enterpriseToEbitda"), 2) if info.get("enterpriseToEbitda") else None,
                 "ROE (%)": round(info.get("returnOnEquity")*100, 2) if info.get("returnOnEquity") else None,
-                "D/E": round(info.get("debtToEquity"), 2) if info.get("debtToEquity") else None,
-                "FCF Yield (%)": round((info.get("freeCashflow", 0) / info.get("enterpriseValue", 1)) * 100, 2) if info.get("enterpriseValue") else None,
-                "ADX": adx_value,
-                "Uppsida (%)": round((info.get("targetMeanPrice") / info.get("currentPrice") - 1) * 100, 2) if info.get("targetMeanPrice") else None
             }
             data.append(row)
-        except:
-            continue
+        except Exception as e:
+            st.error(f"Fel på {t}: {str(e)[:100]}")
     return pd.DataFrame(data)
 
-def style_adx(val):
-    if pd.isna(val):
-        return ''
-    if val <= 20:
-        return 'background-color: #ff4d4d; color: white; font-weight: bold'
-    elif 25 <= val <= 30:
-        return 'background-color: #ffcc00; color: black; font-weight: bold'
-    elif val >= 50:
-        return
+st.subheader("🇺🇸 USA Top 10")
+us_df = fetch_data(us_tickers)
+if not us_df.empty:
+    st.dataframe(us_df, use_container_width=True, hide_index=True)
+else:
+    st.warning("Ingen data laddades för USA")
+
+st.subheader("🇪🇺 Europa Top 10")
+eu_df = fetch_data(eu_tickers)
+if not eu_df.empty:
+    st.dataframe(eu_df, use_container_width=True, hide_index=True)
+else:
+    st.warning("Ingen data laddades för Europa")
+
+st.caption("Om du ser varningar ovan → yfinance har problem. Försök uppdatera sidan.")
+if st.button("🔄 Uppdatera data nu"):
+    st.rerun()
