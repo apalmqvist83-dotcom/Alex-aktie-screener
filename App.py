@@ -97,8 +97,8 @@ if not us_df.empty:
 
     top_us = us_df.nsmallest(10, "Score").copy()
     
-    # Välj kolumner FÖRE styling
-    display_columns = ["Ticker", "Bolag", "Sektor", "Pris", "Forward P/E", "PEG", 
+    # Viktigt: Inkludera Bolag_URL så länken fungerar
+    display_columns = ["Ticker", "Bolag", "Bolag_URL", "Sektor", "Pris", "Forward P/E", "PEG", 
                       "EV/EBITDA", "ROE (%)", "D/E", "FCF Yield (%)", "ADX", "Uppsida (%)"]
     
     display_df = top_us[display_columns]
@@ -109,7 +109,11 @@ if not us_df.empty:
         use_container_width=True,
         hide_index=True,
         column_config={
-            "Bolag_URL": st.column_config.LinkColumn("Bolag", help="Öppna på Yahoo Finance", display_text="Bolag"),
+            "Bolag_URL": st.column_config.LinkColumn(
+                "Bolag", 
+                help="Öppna på Yahoo Finance",
+                display_text="Bolag"
+            ),
             "Pris": st.column_config.NumberColumn("Pris", format="%.2f"),
             "Forward P/E": st.column_config.NumberColumn("Forward P/E", format="%.2f"),
             "PEG": st.column_config.NumberColumn("PEG", format="%.2f"),
@@ -134,7 +138,7 @@ if not eu_df.empty:
 
     top_eu = eu_df.nsmallest(10, "Score").copy()
     
-    display_columns = ["Ticker", "Bolag", "Sektor", "Pris", "Forward P/E", "PEG", 
+    display_columns = ["Ticker", "Bolag", "Bolag_URL", "Sektor", "Pris", "Forward P/E", "PEG", 
                       "EV/EBITDA", "ROE (%)", "D/E", "FCF Yield (%)", "ADX", "Uppsida (%)"]
     
     display_df = top_eu[display_columns]
@@ -145,7 +149,11 @@ if not eu_df.empty:
         use_container_width=True,
         hide_index=True,
         column_config={
-            "Bolag_URL": st.column_config.LinkColumn("Bolag", help="Öppna på Yahoo Finance", display_text="Bolag"),
+            "Bolag_URL": st.column_config.LinkColumn(
+                "Bolag", 
+                help="Öppna på Yahoo Finance",
+                display_text="Bolag"
+            ),
             "Pris": st.column_config.NumberColumn("Pris", format="%.2f"),
             "Forward P/E": st.column_config.NumberColumn("Forward P/E", format="%.2f"),
             "PEG": st.column_config.NumberColumn("PEG", format="%.2f"),
