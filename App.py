@@ -8,8 +8,11 @@ st.title("🚀 Automatisk Value Dashboard - Topp 10 Undervärderade Aktier")
 st.write(f"Uppdaterad: {datetime.now().strftime('%Y-%m-%d %H:%M')} (uppdateras vid refresh)")
 
 # === DINA KANDIDAT-AKTIER (utöka gärna själv) ===
-us_tickers = ["ALL", "MU", "RYAAY", "ACGL", "GEV", "UHS", "T", "CINF", "ALV", "CTSH", "JPM", "BAC", "LEN", "MOS", "PDD"]
-eu_tickers = ["SAN.PA", "DNO.OL", "DOM.ST", "ALV.ST", "RYAAY", "SBC.MI", "DEZ.DE", "BSGR.AS", "COLO-B.CO", "HAYPP.ST"]
+us_tickers = ["ALL", "MU", "GEV", "RYAAY", "ACGL", "UHS", "T", "CINF", "ALV", "CTSH", 
+              "JPM", "BAC", "LEN", "MOS", "PDD", "LRCX", "JPM"]  # lägg till fler
+
+eu_tickers = ["SBC.MI", "OBCK.DE", "GENI.ST", "DNO.OL", "DEZ.DE", "DOM.ST", "ALV.ST", 
+              "SAN.PA", "BSGR.AS", "HAYPP.ST", "COLO-B.CO", "CANATU.HE"]
 
 @st.cache_data(ttl=3600)  # Cache 1 timme
 def fetch_data(tickers):
