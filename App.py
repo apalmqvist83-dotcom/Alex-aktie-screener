@@ -58,4 +58,17 @@ def fetch_data(tickers):
                 "FCF Yield (%)": round((info.get("freeCashflow", 0) / info.get("enterpriseValue", 1)) * 100, 2) 
                                  if info.get("enterpriseValue") and info.get("freeCashflow") else None,
                 "ADX": adx_value,
-                "Uppsida (%)": round((info.get("targetMeanPrice") / info.get("currentPrice", 1) - 1) *
+                "Uppsida (%)": round((info.get("targetMeanPrice") / info.get("currentPrice", 1) - 1) * 100, 2)
+                               if info.get("targetMeanPrice") and info.get("currentPrice") else None
+            }
+            data.append(row)
+        except:
+            continue
+    return pd.DataFrame(data)
+
+def style_adx(val):
+    if pd.isna(val):
+        return ''
+    if val <= 20:
+        return 'background-color: #ff4d4d; color: white; font-weight: bold'
+    elif 25 <= val <=
