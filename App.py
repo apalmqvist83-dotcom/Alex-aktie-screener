@@ -7,14 +7,13 @@ st.set_page_config(page_title="Value Dashboard", layout="wide")
 st.title("🚀 Automatisk Value Dashboard - Topp 10 Undervärderade Aktier")
 st.write(f"Uppdaterad: {datetime.now().strftime('%Y-%m-%d %H:%M')} (uppdateras vid refresh)")
 
-# === TICKERS (mindre lista först för test) ===
+# === TICKERS ===
 us_tickers = ["ALL", "MU", "RYAAY", "ACGL", "UHS", "T", "JPM", "BAC", "MOS", "PDD"]
 eu_tickers = ["SAN.PA", "ALV.ST", "DOM.ST", "DNO.OL", "RYAAY", "BSGR.AS"]
 
 def calculate_adx(hist, period=14):
     if hist.empty or len(hist) < 30:
         return None
-    # ... (samma ADX-funktion som tidigare)
     high = hist['High']
     low = hist['Low']
     close = hist['Close']
@@ -36,10 +35,9 @@ def calculate_adx(hist, period=14):
     adx = dx.ewm(alpha=1/period, adjust=False).mean()
     return round(adx.iloc[-1], 1)
 
-@st.cache_data(ttl=1800)  # 30 minuter
+@st.cache_data(ttl=1800)
 def fetch_data(tickers):
     data = []
-    errors = []
     for t in tickers:
         try:
             stock = yf.Ticker(t)
@@ -62,60 +60,8 @@ def fetch_data(tickers):
                 "Uppsida (%)": round((info.get("targetMeanPrice") / info.get("currentPrice") -1)*100, 2) if info.get("targetMeanPrice") else None
             }
             data.append(row)
-        except Exception as e:
-            errors.append(f"{t}: {str(e)[:80]}")
-    return pd.DataFrame(data), errors
+        except:
+            continue
+    return pd.DataFrame(data)
 
-# Hämta data
-us_df, us_errors = fetch_data(us_tickers)
-eu_df, eu_errors = fetch_data(eu_tickers)
-
-# Visa eventuella fel
-if us_errors or eu_errors:
-    with st.expander("🔍 Debug - Fel vid hämtning"):
-        if us_errors:
-            st.write("USA-fel:", us_errors)
-        if eu_errors:
-            st.write("Europa-fel:", eu_errors)
-
-# ====================== USA ======================
-st.subheader("🇺🇸 USA Top 10")
-if not us_df.empty:
-    # Ranking och styling (samma som tidigare)
-    us_df["Score"] = 0.0
-    for col, weight in [("EV/EBITDA", 1), ("PEG", 1), ("FCF Yield (%)", -1), ("ROE (%)", -1)]:
-        if col in us_df.columns and us_df[col].notna().any():
-            us_df["Score"] += us_df[col].rank(ascending=weight > 0, pct=True) * weight
-
-    top_us = us_df.nsmallest(10, "Score").round(2).copy()
-    top_us["Länk"] = top_us["Ticker"].apply(lambda x: f'<a href="https://finance.yahoo.com/quote/{x}" target="_blank">🔗 Yahoo</a>')
-    
-    styled_us = top_us.style.map(lambda val: 'background-color: #ff4d4d; color: white' if isinstance(val, (int,float)) and val <=20 else 
-                                 'background-color: #ffcc00; color: black' if 25<=val<=30 else
-                                 'background-color: #00cc66; color: white' if val>=50 else '', subset=['ADX'])
-    
-    st.dataframe(styled_us, use_container_width=True, hide_index=True)
-else:
-    st.warning("Ingen data laddades för USA. Försök uppdatera.")
-
-# ====================== EUROPA ======================
-st.subheader("🇪🇺 Europa Top 10")
-if not eu_df.empty:
-    eu_df["Score"] = 0.0
-    for col, weight in [("EV/EBITDA", 1), ("PEG", 1), ("FCF Yield (%)", -1), ("ROE (%)", -1)]:
-        if col in eu_df.columns and eu_df[col].notna().any():
-            eu_df["Score"] += eu_df[col].rank(ascending=weight > 0, pct=True) * weight
-
-    top_eu = eu_df.nsmallest(10, "Score").round(2).copy()
-    top_eu["Länk"] = top_eu["Ticker"].apply(lambda x: f'<a href="https://finance.yahoo.com/quote/{x}" target="_blank">🔗 Yahoo</a>')
-    
-    styled_eu = top_eu.style.map(lambda val: 'background-color: #ff4d4d; color: white' if isinstance(val, (int,float)) and val <=20 else 
-                                 'background-color: #ffcc00; color: black' if 25<=val<=30 else
-                                 'background-color: #00cc66; color: white' if val>=50 else '', subset=['ADX'])
-    
-    st.dataframe(styled_eu, use_container_width=True, hide_index=True)
-else:
-    st.warning("Ingen data laddades för Europa. Försök uppdatera.")
-
-# Resten av förklaringar etc.
-st.markdown("**ADX-färgkodning:** ■ Röd: 0–20 | ■ Gul:
+def
