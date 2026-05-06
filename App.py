@@ -54,7 +54,8 @@ def fetch_data(tickers):
 
             row = {
                 "Ticker": t,
-                "Bolag": f'<a href="{yahoo_url}" target="_blank" style="text-decoration:none; color:inherit; font-weight:inherit;">{bolag_name}</a>',
+                "Bolag": bolag_name,           # Ren text – inget HTML
+                "Yahoo": yahoo_url,            # Ny kolumn för länk
                 "Sektor": info.get("sector", "N/A"),
                 "Pris": round(info.get("currentPrice") or info.get("previousClose"), 2),
                 "Forward P/E": round(info.get("forwardPE"), 2) if info.get("forwardPE") is not None else None,
@@ -101,10 +102,14 @@ if not us_df.empty:
         styled_us,
         use_container_width=True,
         hide_index=True,
-        column_order=["Ticker", "Bolag", "Sektor", "Pris", "Forward P/E", "PEG", 
+        column_order=["Ticker", "Bolag", "Yahoo", "Sektor", "Pris", "Forward P/E", "PEG", 
                      "EV/EBITDA", "ROE (%)", "D/E", "FCF Yield (%)", "ADX", "Uppsida (%)"],
         column_config={
-            "Bolag": st.column_config.TextColumn("Bolag"),
+            "Yahoo": st.column_config.LinkColumn(
+                "Yahoo Finance", 
+                help="Öppna aktiesidan",
+                display_text="🔗 Öppna"
+            ),
             "Pris": st.column_config.NumberColumn("Pris", format="%.2f"),
             "Forward P/E": st.column_config.NumberColumn("Forward P/E", format="%.2f"),
             "PEG": st.column_config.NumberColumn("PEG", format="%.2f"),
@@ -134,10 +139,14 @@ if not eu_df.empty:
         styled_eu,
         use_container_width=True,
         hide_index=True,
-        column_order=["Ticker", "Bolag", "Sektor", "Pris", "Forward P/E", "PEG", 
+        column_order=["Ticker", "Bolag", "Yahoo", "Sektor", "Pris", "Forward P/E", "PEG", 
                      "EV/EBITDA", "ROE (%)", "D/E", "FCF Yield (%)", "ADX", "Uppsida (%)"],
         column_config={
-            "Bolag": st.column_config.TextColumn("Bolag"),
+            "Yahoo": st.column_config.LinkColumn(
+                "Yahoo Finance", 
+                help="Öppna aktiesidan",
+                display_text="🔗 Öppna"
+            ),
             "Pris": st.column_config.NumberColumn("Pris", format="%.2f"),
             "Forward P/E": st.column_config.NumberColumn("Forward P/E", format="%.2f"),
             "PEG": st.column_config.NumberColumn("PEG", format="%.2f"),
@@ -167,6 +176,6 @@ with st.expander("📘 Förklaring av indikatorerna"):
     - **Uppsida (%)**: Potentiell kursuppgång enligt analytiker.
     """)
 
-st.caption("Klicka på bolagsnamnet för att komma till Yahoo Finance • Data uppdateras vid refresh")
+st.caption("Klicka på 🔗 Öppna för att komma till Yahoo Finance • Data uppdateras vid refresh")
 if st.button("🔄 Uppdatera data nu"):
     st.rerun()
