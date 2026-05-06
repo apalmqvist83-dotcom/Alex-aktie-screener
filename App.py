@@ -1,6 +1,7 @@
 import streamlit as st
 import yfinance as yf
 import pandas as pd
+import numpy as np
 from datetime import datetime
 
 st.set_page_config(page_title="Value Dashboard", layout="wide")
@@ -33,22 +34,16 @@ def calculate_adx(hist, period=14):
     
     dx = (abs(plus_di - minus_di) / (plus_di + minus_di)) * 100
     adx = dx.ewm(alpha=1/period, adjust=False).mean()
-    return round(adx.iloc[-1], 2)
+    return round(adx.iloc[-1], 1)
 
 @st.cache_data(ttl=3600)
 def fetch_data(tickers):
     data = []
-    errors = []
     for t in tickers:
         try:
             stock = yf.Ticker(t)
             info = stock.info
             hist = stock.history(period="3mo")
-            
-            if hist.empty:
-                errors.append(f"{t}: Ingen historikdata")
-                continue
-
             adx_value = calculate_adx(hist)
 
             row = {
@@ -56,32 +51,19 @@ def fetch_data(tickers):
                 "Bolag": info.get("longName", t),
                 "Sektor": info.get("sector", "N/A"),
                 "Pris": round(info.get("currentPrice", info.get("previousClose", 0)), 2),
-                "Forward P/E": round(info.get("forwardPE"), 2) if info.get("forwardPE") is not None else None,
-                "PEG": round(info.get("pegRatio"), 2) if info.get("pegRatio") is not None else None,
-                "EV/EBITDA": round(info.get("enterpriseToEbitda"), 2) if info.get("enterpriseToEbitda") is not None else None,
-                "ROE (%)": round(info.get("returnOnEquity") * 100, 2) if info.get("returnOnEquity") is not None else None,
-                "D/E": round(info.get("debtToEquity"), 2) if info.get("debtToEquity") is not None else None,
-                "FCF Yield (%)": round((info.get("freeCashflow", 0) / info.get("enterpriseValue", 1)) * 100, 2) 
-                                 if info.get("enterpriseValue") and info.get("freeCashflow") else None,
+                "Forward P/E": round(info.get("forwardPE"), 2) if info.get("forwardPE") else None,
+                "PEG": round(info.get("pegRatio"), 2) if info.get("pegRatio") else None,
+                "EV/EBITDA": round(info.get("enterpriseToEbitda"), 2) if info.get("enterpriseToEbitda") else None,
+                "ROE (%)": round(info.get("returnOnEquity") * 100, 1) if info.get("returnOnEquity") else None,
+                "D/E": round(info.get("debtToEquity"), 2) if info.get("debtToEquity") else None,
+                "FCF Yield (%)": round((info.get("freeCashflow", 0) / info.get("enterpriseValue", 1)) * 100, 2) if info.get("enterpriseValue") and info.get("freeCashflow") else None,
                 "ADX": adx_value,
-                "Uppsida (%)": round((info.get("targetMeanPrice") / info.get("currentPrice", 1) - 1) * 100, 2)
-                               if info.get("targetMeanPrice") and info.get("currentPrice") else None
+                "Uppsida (%)": round((info.get("targetMeanPrice") / info.get("currentPrice") - 1) * 100, 1) if info.get("targetMeanPrice") and info.get("currentPrice") else None
             }
             data.append(row)
-            
-        except Exception as e:
-            errors.append(f"{t}: {str(e)[:120]}")
+        except:
             continue
-    
-    df = pd.DataFrame(data)
-    
-    # Visa fel för debugging
-    if errors:
-        st.error(f"**Fel vid hämtning ({len(errors)} ticker(s)):**")
-        for err in errors[:15]:
-            st.caption(err)
-    
-    return df
+    return pd.DataFrame(data)
 
 def style_adx(val):
     if pd.isna(val):
@@ -104,19 +86,14 @@ if not us_df.empty:
         if col in us_df.columns and us_df[col].notna().any():
             us_df["Score"] += us_df[col].rank(ascending=weight > 0, pct=True) * weight
 
-    top_us = us_df.nsmallest(10, "Score").copy()
-
-    numeric_cols = ["Pris", "Forward P/E", "PEG", "EV/EBITDA", "ROE (%)", 
-                   "D/E", "FCF Yield (%)", "ADX", "Uppsida (%)"]
+    top_us = us_df.nsmallest(10, "Score").round(2).copy()
+    styled_us = top_us.style.map(style_adx, subset=['ADX'])
     
-    styled_us = (top_us.style
-                 .map(style_adx, subset=['ADX'])
-                 .format("{:.2f}", subset=[col for col in numeric_cols if col in top_us.columns])
+    st.dataframe(
+        styled_us,
+        use_container_width=True,
+        hide_index=True
     )
-
-    st.dataframe(styled_us, use_container_width=True, hide_index=True)
-else:
-    st.warning("Ingen data hämtades för USA.")
 
 # ====================== EUROPA ======================
 st.subheader("🇪🇺 Europa Top 10")
@@ -128,16 +105,14 @@ if not eu_df.empty:
         if col in eu_df.columns and eu_df[col].notna().any():
             eu_df["Score"] += eu_df[col].rank(ascending=weight > 0, pct=True) * weight
 
-    top_eu = eu_df.nsmallest(10, "Score").copy()
-
-    styled_eu = (top_eu.style
-                 .map(style_adx, subset=['ADX'])
-                 .format("{:.2f}", subset=[col for col in numeric_cols if col in top_eu.columns])
+    top_eu = eu_df.nsmallest(10, "Score").round(2).copy()
+    styled_eu = top_eu.style.map(style_adx, subset=['ADX'])
+    
+    st.dataframe(
+        styled_eu,
+        use_container_width=True,
+        hide_index=True
     )
-
-    st.dataframe(styled_eu, use_container_width=True, hide_index=True)
-else:
-    st.warning("Ingen data hämtades för Europa.")
 
 st.markdown("""
 **ADX-färgkodning:**  
