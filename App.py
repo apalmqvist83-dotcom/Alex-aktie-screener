@@ -96,14 +96,16 @@ if not us_df.empty:
             us_df["Score"] += us_df[col].rank(ascending=weight > 0, pct=True) * weight
 
     top_us = us_df.nsmallest(10, "Score").copy()
-    styled_us = top_us.style.map(style_adx, subset=['ADX'])
-
-    # Visa bara önskade kolumner (Score är dold)
+    
+    # Välj kolumner FÖRE styling
     display_columns = ["Ticker", "Bolag", "Sektor", "Pris", "Forward P/E", "PEG", 
                       "EV/EBITDA", "ROE (%)", "D/E", "FCF Yield (%)", "ADX", "Uppsida (%)"]
+    
+    display_df = top_us[display_columns]
+    styled_us = display_df.style.map(style_adx, subset=['ADX'])
 
     st.dataframe(
-        styled_us[display_columns],
+        styled_us,
         use_container_width=True,
         hide_index=True,
         column_config={
@@ -131,13 +133,15 @@ if not eu_df.empty:
             eu_df["Score"] += eu_df[col].rank(ascending=weight > 0, pct=True) * weight
 
     top_eu = eu_df.nsmallest(10, "Score").copy()
-    styled_eu = top_eu.style.map(style_adx, subset=['ADX'])
-
+    
     display_columns = ["Ticker", "Bolag", "Sektor", "Pris", "Forward P/E", "PEG", 
                       "EV/EBITDA", "ROE (%)", "D/E", "FCF Yield (%)", "ADX", "Uppsida (%)"]
+    
+    display_df = top_eu[display_columns]
+    styled_eu = display_df.style.map(style_adx, subset=['ADX'])
 
     st.dataframe(
-        styled_eu[display_columns],
+        styled_eu,
         use_container_width=True,
         hide_index=True,
         column_config={
