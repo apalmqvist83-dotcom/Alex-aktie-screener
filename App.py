@@ -53,16 +53,16 @@ def fetch_data(tickers):
                 "Bolag": bolag_name,
                 "Bolag_URL": yahoo_url,
                 "Sektor": info.get("sector", "N/A"),
-                "Pris": info.get("currentPrice") or info.get("previousClose"),
-                "Forward P/E": info.get("forwardPE"),
-                "PEG": info.get("pegRatio"),
-                "EV/EBITDA": info.get("enterpriseToEbitda"),
-                "ROE (%)": info.get("returnOnEquity") * 100 if info.get("returnOnEquity") else None,
-                "D/E": info.get("debtToEquity"),
-                "FCF Yield (%)": (info.get("freeCashflow", 0) / info.get("enterpriseValue", 1)) * 100 
+                "Pris": round(info.get("currentPrice") or info.get("previousClose"), 2),
+                "Forward P/E": round(info.get("forwardPE"), 2) if info.get("forwardPE") is not None else None,
+                "PEG": round(info.get("pegRatio"), 2) if info.get("pegRatio") is not None else None,
+                "EV/EBITDA": round(info.get("enterpriseToEbitda"), 2) if info.get("enterpriseToEbitda") is not None else None,
+                "ROE (%)": round(info.get("returnOnEquity") * 100, 1) if info.get("returnOnEquity") is not None else None,
+                "D/E": round(info.get("debtToEquity"), 2) if info.get("debtToEquity") is not None else None,
+                "FCF Yield (%)": round((info.get("freeCashflow", 0) / info.get("enterpriseValue", 1)) * 100, 2) 
                                  if info.get("enterpriseValue") and info.get("freeCashflow") else None,
                 "ADX": adx_value,
-                "Uppsida (%)": (info.get("targetMeanPrice") / info.get("currentPrice") - 1) * 100 
+                "Uppsida (%)": round((info.get("targetMeanPrice") / info.get("currentPrice") - 1) * 100, 1) 
                                if info.get("targetMeanPrice") and info.get("currentPrice") else None
             }
             data.append(row)
@@ -99,20 +99,16 @@ if not us_df.empty:
         use_container_width=True,
         hide_index=True,
         column_config={
-            "Bolag_URL": st.column_config.LinkColumn(
-                "Bolag",
-                help="Öppna på Yahoo Finance",
-                display_text="Bolag"
-            ),
-            "Pris": st.column_config.NumberColumn("Pris", format=None),
-            "Forward P/E": st.column_config.NumberColumn("Forward P/E", format=None),
-            "PEG": st.column_config.NumberColumn("PEG", format=None),
-            "EV/EBITDA": st.column_config.NumberColumn("EV/EBITDA", format=None),
-            "ROE (%)": st.column_config.NumberColumn("ROE (%)", format=None),
-            "D/E": st.column_config.NumberColumn("D/E", format=None),
-            "FCF Yield (%)": st.column_config.NumberColumn("FCF Yield (%)", format=None),
-            "ADX": st.column_config.NumberColumn("ADX", format=None),
-            "Uppsida (%)": st.column_config.NumberColumn("Uppsida (%)", format=None),
+            "Bolag_URL": st.column_config.LinkColumn("Bolag", help="Öppna på Yahoo Finance", display_text="Bolag"),
+            "Pris": st.column_config.NumberColumn("Pris", format="%.2f"),
+            "Forward P/E": st.column_config.NumberColumn("Forward P/E", format="%.2f"),
+            "PEG": st.column_config.NumberColumn("PEG", format="%.2f"),
+            "EV/EBITDA": st.column_config.NumberColumn("EV/EBITDA", format="%.2f"),
+            "ROE (%)": st.column_config.NumberColumn("ROE (%)", format="%.1f"),
+            "D/E": st.column_config.NumberColumn("D/E", format="%.2f"),
+            "FCF Yield (%)": st.column_config.NumberColumn("FCF Yield (%)", format="%.2f"),
+            "ADX": st.column_config.NumberColumn("ADX", format="%.1f"),
+            "Uppsida (%)": st.column_config.NumberColumn("Uppsida (%)", format="%.1f"),
         }
     )
 
@@ -134,20 +130,16 @@ if not eu_df.empty:
         use_container_width=True,
         hide_index=True,
         column_config={
-            "Bolag_URL": st.column_config.LinkColumn(
-                "Bolag",
-                help="Öppna på Yahoo Finance",
-                display_text="Bolag"
-            ),
-            "Pris": st.column_config.NumberColumn("Pris", format=None),
-            "Forward P/E": st.column_config.NumberColumn("Forward P/E", format=None),
-            "PEG": st.column_config.NumberColumn("PEG", format=None),
-            "EV/EBITDA": st.column_config.NumberColumn("EV/EBITDA", format=None),
-            "ROE (%)": st.column_config.NumberColumn("ROE (%)", format=None),
-            "D/E": st.column_config.NumberColumn("D/E", format=None),
-            "FCF Yield (%)": st.column_config.NumberColumn("FCF Yield (%)", format=None),
-            "ADX": st.column_config.NumberColumn("ADX", format=None),
-            "Uppsida (%)": st.column_config.NumberColumn("Uppsida (%)", format=None),
+            "Bolag_URL": st.column_config.LinkColumn("Bolag", help="Öppna på Yahoo Finance", display_text="Bolag"),
+            "Pris": st.column_config.NumberColumn("Pris", format="%.2f"),
+            "Forward P/E": st.column_config.NumberColumn("Forward P/E", format="%.2f"),
+            "PEG": st.column_config.NumberColumn("PEG", format="%.2f"),
+            "EV/EBITDA": st.column_config.NumberColumn("EV/EBITDA", format="%.2f"),
+            "ROE (%)": st.column_config.NumberColumn("ROE (%)", format="%.1f"),
+            "D/E": st.column_config.NumberColumn("D/E", format="%.2f"),
+            "FCF Yield (%)": st.column_config.NumberColumn("FCF Yield (%)", format="%.2f"),
+            "ADX": st.column_config.NumberColumn("ADX", format="%.1f"),
+            "Uppsida (%)": st.column_config.NumberColumn("Uppsida (%)", format="%.1f"),
         }
     )
 
