@@ -46,9 +46,12 @@ def fetch_data(tickers):
             hist = stock.history(period="3mo")
             adx_value = calculate_adx(hist)
 
+            bolag_name = info.get("longName", t)
+            yahoo_url = f"https://finance.yahoo.com/quote/{t}"
+
             row = {
                 "Ticker": t,
-                "Bolag": info.get("longName", t),
+                "Bolag": f'<a href="{yahoo_url}" target="_blank" style="text-decoration:none; color:inherit;">{bolag_name}</a>',
                 "Sektor": info.get("sector", "N/A"),
                 "Pris": round(info.get("currentPrice", info.get("previousClose", 0)), 2),
                 "Forward P/E": round(info.get("forwardPE"), 2) if info.get("forwardPE") else None,
@@ -89,11 +92,8 @@ if not us_df.empty:
     top_us = us_df.nsmallest(10, "Score").round(2).copy()
     styled_us = top_us.style.map(style_adx, subset=['ADX'])
     
-    st.dataframe(
-        styled_us,
-        use_container_width=True,
-        hide_index=True
-    )
+    # Rendera som HTML för att hyperlänkarna ska fungera
+    st.markdown(styled_us.to_html(escape=False, index=False), unsafe_allow_html=True)
 
 # ====================== EUROPA ======================
 st.subheader("🇪🇺 Europa Top 10")
@@ -108,11 +108,7 @@ if not eu_df.empty:
     top_eu = eu_df.nsmallest(10, "Score").round(2).copy()
     styled_eu = top_eu.style.map(style_adx, subset=['ADX'])
     
-    st.dataframe(
-        styled_eu,
-        use_container_width=True,
-        hide_index=True
-    )
+    st.markdown(styled_eu.to_html(escape=False, index=False), unsafe_allow_html=True)
 
 st.markdown("""
 **ADX-färgkodning:**  
@@ -130,6 +126,6 @@ with st.expander("📘 Förklaring av indikatorerna"):
     - **Uppsida (%)**: Potentiell kursuppgång enligt analytiker.
     """)
 
-st.caption("Kopiera Ticker eller Bolag och sök på Yahoo Finance • Data uppdateras vid refresh")
+st.caption("Klicka på bolagsnamnet för att komma till Yahoo Finance • Data uppdateras vid refresh")
 if st.button("🔄 Uppdatera data nu"):
     st.rerun()
