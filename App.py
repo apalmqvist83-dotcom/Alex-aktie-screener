@@ -55,4 +55,21 @@ def fetch_data(tickers):
                 "EV/EBITDA": round(info.get("enterpriseToEbitda"), 2) if info.get("enterpriseToEbitda") else None,
                 "ROE (%)": round(info.get("returnOnEquity")*100, 2) if info.get("returnOnEquity") else None,
                 "D/E": round(info.get("debtToEquity"), 2) if info.get("debtToEquity") else None,
-                "FCF Yield (%)": round((info.get("freeCash
+                "FCF Yield (%)": round((info.get("freeCashflow", 0) / info.get("enterpriseValue", 1)) * 100, 2) if info.get("enterpriseValue") else None,
+                "ADX": adx_value,
+                "Uppsida (%)": round((info.get("targetMeanPrice") / info.get("currentPrice") - 1) * 100, 2) if info.get("targetMeanPrice") else None
+            }
+            data.append(row)
+        except:
+            continue
+    return pd.DataFrame(data)
+
+def style_adx(val):
+    if pd.isna(val):
+        return ''
+    if val <= 20:
+        return 'background-color: #ff4d4d; color: white; font-weight: bold'
+    elif 25 <= val <= 30:
+        return 'background-color: #ffcc00; color: black; font-weight: bold'
+    elif val >= 50:
+        return
