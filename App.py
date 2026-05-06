@@ -50,8 +50,8 @@ def fetch_data(tickers):
 
             row = {
                 "Ticker": t,
-                "Bolag": bolag_name,           # vanlig sträng här
-                "Bolag_URL": yahoo_url,        # separat URL-kolumn för länken
+                "Bolag": bolag_name,
+                "Bolag_URL": yahoo_url,
                 "Sektor": info.get("sector", "N/A"),
                 "Pris": round(info.get("currentPrice", info.get("previousClose", 0)), 2),
                 "Forward P/E": round(info.get("forwardPE"), 2) if info.get("forwardPE") else None,
@@ -59,9 +59,11 @@ def fetch_data(tickers):
                 "EV/EBITDA": round(info.get("enterpriseToEbitda"), 2) if info.get("enterpriseToEbitda") else None,
                 "ROE (%)": round(info.get("returnOnEquity") * 100, 1) if info.get("returnOnEquity") else None,
                 "D/E": round(info.get("debtToEquity"), 2) if info.get("debtToEquity") else None,
-                "FCF Yield (%)": round((info.get("freeCashflow", 0) / info.get("enterpriseValue", 1)) * 100, 2) if info.get("enterpriseValue") and info.get("freeCashflow") else None,
+                "FCF Yield (%)": round((info.get("freeCashflow", 0) / info.get("enterpriseValue", 1)) * 100, 2) 
+                                 if info.get("enterpriseValue") and info.get("freeCashflow") else None,
                 "ADX": adx_value,
-                "Uppsida (%)": round((info.get("targetMeanPrice") / info.get("currentPrice") - 1) * 100, 1) if info.get("targetMeanPrice") and info.get("currentPrice") else None
+                "Uppsida (%)": round((info.get("targetMeanPrice") / info.get("currentPrice") - 1) * 100, 1) 
+                               if info.get("targetMeanPrice") and info.get("currentPrice") else None
             }
             data.append(row)
         except:
@@ -90,21 +92,17 @@ if not us_df.empty:
             us_df["Score"] += us_df[col].rank(ascending=weight > 0, pct=True) * weight
 
     top_us = us_df.nsmallest(10, "Score").round(2).copy()
-    
-    # Styling
     styled_us = top_us.style.map(style_adx, subset=['ADX'])
-    
-    # Visa med länkar via column config
+
     st.dataframe(
         styled_us,
         use_container_width=True,
         hide_index=True,
         column_config={
-            "Bolag": st.column_config.TextColumn("Bolag"),
             "Bolag_URL": st.column_config.LinkColumn(
-                "Bolag", 
-                help="Klicka för att gå till Yahoo Finance",
-                display_text=lambda x: top_us.loc[top_us["Bolag_URL"] == x, "Bolag"].iloc[0] if not top_us.empty else x
+                "Bolag",                    # Kolumnrubrik
+                help="Öppna på Yahoo Finance",
+                display_text="Bolag"        # Använder värdet från "Bolag"-kolumnen
             )
         }
     )
@@ -120,9 +118,8 @@ if not eu_df.empty:
             eu_df["Score"] += eu_df[col].rank(ascending=weight > 0, pct=True) * weight
 
     top_eu = eu_df.nsmallest(10, "Score").round(2).copy()
-    
     styled_eu = top_eu.style.map(style_adx, subset=['ADX'])
-    
+
     st.dataframe(
         styled_eu,
         use_container_width=True,
@@ -130,13 +127,13 @@ if not eu_df.empty:
         column_config={
             "Bolag_URL": st.column_config.LinkColumn(
                 "Bolag",
-                help="Klicka för att gå till Yahoo Finance",
-                display_text=lambda x: top_eu.loc[top_eu["Bolag_URL"] == x, "Bolag"].iloc[0] if not top_eu.empty else x
+                help="Öppna på Yahoo Finance",
+                display_text="Bolag"
             )
         }
     )
 
-# Resten av koden (färgkodning, förklaring etc.)
+# ====================== Övrigt ======================
 st.markdown("""
 **ADX-färgkodning:**  
 <span style='color:#ff4d4d'> ■ 0–20</span> Svag trend!  |
