@@ -1,4 +1,4 @@
-import streamlit as st
+iimport streamlit as st
 import yfinance as yf
 import pandas as pd
 import numpy as np
@@ -116,9 +116,9 @@ if not eu_df.empty:
 
 st.markdown("""
 **ADX-färgkodning:**  
-<span style='color:#ff4d4d'>■ 0–20</span> Svag trend      | 
-<span style='color:#ffcc00'>■ 21–30</span> Börjande trend      | 
-<span style='color:#00cc66'>■ 31-50</span> Stark trend      |
+<span style='color:#ff4d4d'>■ 0–20</span> Svag trend ""  | 
+<span style='color:#ffcc00'>■ 21–30</span> Börjande trend ""  | 
+<span style='color:#00cc66'>■ 31-50</span> Stark trend "" |
 """, unsafe_allow_html=True)
 
 with st.expander("📘 Förklaring av indikatorerna"):
