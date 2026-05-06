@@ -5,7 +5,7 @@ import numpy as np
 from datetime import datetime
 
 st.set_page_config(page_title="Value Dashboard", layout="wide")
-st.title("🚀 Automatisk Value Dashboard - Topp 10 Undervärderade Aktier")
+st.title("🚀 Topp 10 Undervärderade Aktier")
 st.write(f"Uppdaterad: {datetime.now().strftime('%Y-%m-%d %H:%M')} (uppdateras vid refresh)")
 
 # === TICKERS ===
@@ -70,9 +70,9 @@ def style_adx(val):
         return ''
     if val <= 20:
         return 'background-color: #ff4d4d; color: white; font-weight: bold'
-    elif 25 <= val <= 30:
+    elif 21 <= val <= 30:
         return 'background-color: #ffcc00; color: black; font-weight: bold'
-    elif val >= 50:
+    elif 31 <= val <= 50:
         return 'background-color: #00cc66; color: white; font-weight: bold'
     return ''
 
@@ -117,8 +117,8 @@ if not eu_df.empty:
 st.markdown("""
 **ADX-färgkodning:**  
 <span style='color:#ff4d4d'>■ 0–20</span> Svag trend | 
-<span style='color:#ffcc00'>■ 25–30</span> Börjande trend | 
-<span style='color:#00cc66'>■ ≥50</span> Stark trend
+<span style='color:#ffcc00'>■ 21–30</span> Börjande trend | 
+<span style='color:#00cc66'>■ 31-50</span> Stark trend
 """, unsafe_allow_html=True)
 
 with st.expander("📘 Förklaring av indikatorerna"):
