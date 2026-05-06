@@ -98,8 +98,12 @@ if not us_df.empty:
     top_us = us_df.nsmallest(10, "Score").copy()
     styled_us = top_us.style.map(style_adx, subset=['ADX'])
 
+    # Visa bara önskade kolumner (Score är dold)
+    display_columns = ["Ticker", "Bolag", "Sektor", "Pris", "Forward P/E", "PEG", 
+                      "EV/EBITDA", "ROE (%)", "D/E", "FCF Yield (%)", "ADX", "Uppsida (%)"]
+
     st.dataframe(
-        styled_us,
+        styled_us[display_columns],
         use_container_width=True,
         hide_index=True,
         column_config={
@@ -129,8 +133,11 @@ if not eu_df.empty:
     top_eu = eu_df.nsmallest(10, "Score").copy()
     styled_eu = top_eu.style.map(style_adx, subset=['ADX'])
 
+    display_columns = ["Ticker", "Bolag", "Sektor", "Pris", "Forward P/E", "PEG", 
+                      "EV/EBITDA", "ROE (%)", "D/E", "FCF Yield (%)", "ADX", "Uppsida (%)"]
+
     st.dataframe(
-        styled_eu,
+        styled_eu[display_columns],
         use_container_width=True,
         hide_index=True,
         column_config={
@@ -147,7 +154,7 @@ if not eu_df.empty:
         }
     )
 
-# ====================== ADX-färgkodning (nu staplad) ======================
+# ====================== ADX-färgkodning ======================
 st.markdown("""
 **ADX-färgkodning:**
 """, unsafe_allow_html=True)
