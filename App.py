@@ -4,11 +4,12 @@ import pandas as pd
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-st.set_page_config(page_title="Value Dashboard", layout="wide")
+st.set_page_config(page_title="Value Dashboard", layout="wide", initial_sidebar_state="collapsed")
+
 st.title("🚀 Topp 10 Undervärderade Aktier")
 
 cest_time = datetime.now(ZoneInfo("Europe/Stockholm"))
-st.write(f"Uppdaterad: {cest_time.strftime('%Y-%m-%d %H:%M')} CEST (uppdateras vid refresh)")
+st.write(f"Uppdaterad: {cest_time.strftime('%Y-%m-%d %H:%M')} CEST")
 
 # ====================== CANDIDATE POOLS ======================
 us_candidates = ["ALL", "MU", "GEV", "RYAAY", "ACGL", "UHS", "T", "CINF", "ALV", "CTSH", 
@@ -64,7 +65,7 @@ def fetch_data(candidates, n=10):
 
             row = {
                 "Ticker": t,
-                "Bolag": info.get("longName", t),
+                "Bolag": info.get("longName", t)[:35],   # Kortar av långa bolagsnamn
                 "Yahoo": f"https://finance.yahoo.com/quote/{t}",
                 "Sektor": info.get("sector", "N/A"),
                 "Pris": round(price, 2),
@@ -93,43 +94,47 @@ def style_adx(val):
     elif 31 <= val <= 50: return 'background-color: #00cc66; color: white; font-weight: bold'
     return ''
 
-# ====================== CUSTOM CSS - Extremt kompakt ======================
+# ====================== EXTREM KOMPAKT CSS ======================
 st.markdown("""
 <style>
+    .main .block-container { padding-top: 1rem; padding-bottom: 0.5rem; }
+    h1 { margin-bottom: 0.3rem !important; }
+    .stMarkdown { margin-bottom: 0.3rem !important; }
+    
     .stDataFrame {
-        font-size: 0.90rem !important;
+        font-size: 0.87rem !important;
     }
     .stDataFrame td, .stDataFrame th {
-        padding: 5px 6px !important;
-        line-height: 1.1 !important;
+        padding: 4px 6px !important;
+        line-height: 1.05 !important;
     }
     div[data-testid="stDataFrame"] table th:nth-child(3),
     div[data-testid="stDataFrame"] table td:nth-child(3) {
-        min-width: 200px;
+        min-width: 190px;
     }
 </style>
 """, unsafe_allow_html=True)
 
 # ====================== KOLUMN KONFIG ======================
 column_config = {
-    "Yahoo": st.column_config.LinkColumn("Yahoo", help="Öppna", display_text="🔗", width=65),
-    "Ticker": st.column_config.TextColumn("Ticker", width=75),
-    "Bolag": st.column_config.TextColumn("Bolag", width=200),
-    "Sektor": st.column_config.TextColumn("Sektor", width=110),
-    "Pris": st.column_config.NumberColumn("Pris", format="%.2f", width=95),
-    "Valuta": st.column_config.TextColumn("Valuta", width=65),
-    "Forward P/E": st.column_config.NumberColumn("F P/E", format="%.2f", width=80),
-    "PEG": st.column_config.NumberColumn("PEG", format="%.2f", width=70),
-    "EV/EBITDA": st.column_config.NumberColumn("EV/EBITDA", format="%.2f", width=105),
-    "ROE (%)": st.column_config.NumberColumn("ROE %", format="%.1f", width=75),
-    "D/E": st.column_config.NumberColumn("D/E", format="%.2f", width=65),
-    "FCF Yield (%)": st.column_config.NumberColumn("FCF Yield", format="%.2f", width=105),
-    "ADX": st.column_config.NumberColumn("ADX", format="%.1f", width=65),
-    "Uppsida (%)": st.column_config.NumberColumn("Uppsida %", format="%.1f", width=90),
+    "Yahoo": st.column_config.LinkColumn(" ", help="Öppna", display_text="🔗", width=50),
+    "Ticker": st.column_config.TextColumn("Ticker", width=70),
+    "Bolag": st.column_config.TextColumn("Bolag", width=185),
+    "Sektor": st.column_config.TextColumn("Sektor", width=105),
+    "Pris": st.column_config.NumberColumn("Pris", format="%.2f", width=90),
+    "Valuta": st.column_config.TextColumn("Val", width=55),
+    "Forward P/E": st.column_config.NumberColumn("F P/E", format="%.2f", width=75),
+    "PEG": st.column_config.NumberColumn("PEG", format="%.2f", width=65),
+    "EV/EBITDA": st.column_config.NumberColumn("EV/EB", format="%.2f", width=95),
+    "ROE (%)": st.column_config.NumberColumn("ROE %", format="%.1f", width=70),
+    "D/E": st.column_config.NumberColumn("D/E", format="%.2f", width=60),
+    "FCF Yield (%)": st.column_config.NumberColumn("FCF %", format="%.2f", width=95),
+    "ADX": st.column_config.NumberColumn("ADX", format="%.1f", width=60),
+    "Uppsida (%)": st.column_config.NumberColumn("Uppsida", format="%.1f", width=85),
 }
 
-# ====================== USA ======================
-st.markdown('<h3><img src="https://flagcdn.com/w40/us.png" width="36" style="vertical-align:middle;margin-right:10px;">USA Top 10</h3>', unsafe_allow_html=True)
+# ====================== TABELLER ======================
+st.markdown('<h3><img src="https://flagcdn.com/w40/us.png" width="34" style="vertical-align:middle;margin-right:8px;">USA Top 10</h3>', unsafe_allow_html=True)
 us_df = fetch_data(us_candidates, n=10)
 
 if not us_df.empty:
@@ -145,10 +150,9 @@ if not us_df.empty:
                  column_order=["Ticker", "Bolag", "Yahoo", "Sektor", "Pris", "Valuta", "Forward P/E", "PEG", 
                               "EV/EBITDA", "ROE (%)", "D/E", "FCF Yield (%)", "ADX", "Uppsida (%)"],
                  column_config=column_config,
-                 height=355)
+                 height=320)
 
-# ====================== EUROPA ======================
-st.markdown('<h3><img src="https://flagcdn.com/w40/eu.png" width="36" style="vertical-align:middle;margin-right:10px;">Europa Top 10</h3>', unsafe_allow_html=True)
+st.markdown('<h3><img src="https://flagcdn.com/w40/eu.png" width="34" style="vertical-align:middle;margin-right:8px;">Europa Top 10</h3>', unsafe_allow_html=True)
 eu_df = fetch_data(eu_candidates, n=10)
 
 if not eu_df.empty:
@@ -164,7 +168,7 @@ if not eu_df.empty:
                  column_order=["Ticker", "Bolag", "Yahoo", "Sektor", "Pris", "Valuta", "Forward P/E", "PEG", 
                               "EV/EBITDA", "ROE (%)", "D/E", "FCF Yield (%)", "ADX", "Uppsida (%)"],
                  column_config=column_config,
-                 height=355)
+                 height=320)
 
 # ====================== INFO ======================
 st.markdown("**ADX-färgkodning:**", unsafe_allow_html=True)
@@ -172,13 +176,11 @@ st.markdown("""<span style='color:#ff4d4d'>■</span> **0–20** Svag 
 <span style='color:#ffcc00'>■</span> **21–30** Börjande 
 <span style='color:#00cc66'>■</span> **31–50** Stark""", unsafe_allow_html=True)
 
-with st.expander("📘 Förklaring av indikatorerna"):
-    st.markdown("""- **Forward P/E, PEG, EV/EBITDA**: Ju lägre = mer undervärderad  
-- **ROE (%) & FCF Yield (%)**: Högre = bättre  
-- **ADX**: Trendstyrka (färgkodad)  
-- **Uppsida (%)**: Analytikernas förväntan""")
+with st.expander("📘 Förklaring"):
+    st.markdown("""• Lägre värde = undervärderad på Forward P/E, PEG, EV/EBITDA  
+• Högre = bättre på ROE & FCF Yield""")
 
-st.caption("Klicka på 🔗 för att öppna Yahoo Finance • Data uppdateras vid refresh")
+st.caption("🔗 = Yahoo Finance")
 
-if st.button("🔄 Uppdatera data nu"):
+if st.button("🔄 Uppdatera data"):
     st.rerun()
