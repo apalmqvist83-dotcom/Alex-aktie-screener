@@ -13,7 +13,8 @@ st.write(f"Uppdaterad: {cest_time.strftime('%Y-%m-%d %H:%M')} CEST (uppdateras v
 
 # === TICKERS ===
 us_tickers = ["ALL", "MU", "GEV", "RYAAY", "ACGL", "UHS", "T", "CINF", "ALV", "CTSH", "JPM", "BAC", "LEN", "MOS", "PDD"]
-eu_tickers = ["SAN.PA", "DNO.OL", "DOM.ST", "ALV.ST", "RYAAY", "SBC.MI", "DEZ.DE", "BSGR.AS", "COLO-B.CO", "HAYPP.ST"]
+
+eu_tickers = ["SAN.PA", "DNO.OL", "DOM.ST", "RYAAY", "SBC.MI", "DEZ.DE", "COLO-B.CO", "HAYPP.ST"]   # ALV.ST och BSGR.AS borttagna
 
 def calculate_adx(hist, period=14):
     if len(hist) < period * 2 or hist.empty:
@@ -40,9 +41,8 @@ def calculate_adx(hist, period=14):
     return round(adx.iloc[-1], 1)
 
 @st.cache_data(ttl=3600)
-def fetch_data(tickers, market=""):
+def fetch_data(tickers):
     data = []
-    failed = []
     for t in tickers:
         try:
             stock = yf.Ticker(t)
@@ -51,7 +51,6 @@ def fetch_data(tickers, market=""):
             adx_value = calculate_adx(hist)
 
             if info is None or len(hist) < 20:
-                failed.append(t)
                 continue
 
             row = {
@@ -73,17 +72,8 @@ def fetch_data(tickers, market=""):
             }
             data.append(row)
         except:
-            failed.append(t)
             continue
-    
-    df = pd.DataFrame(data)
-    
-    if failed:
-        st.warning(f"❌ {market} – Kunde inte hämta {len(failed)} ticker: {', '.join(failed)}")
-    if len(data) > 0:
-        st.success(f"✅ {market} – Hämtade {len(data)} aktier")
-    
-    return df
+    return pd.DataFrame(data)
 
 def style_adx(val):
     if pd.isna(val):
@@ -104,7 +94,7 @@ st.markdown("""
     </h3>
 """, unsafe_allow_html=True)
 
-us_df = fetch_data(us_tickers, "🇺🇸 USA")
+us_df = fetch_data(us_tickers)
 
 if not us_df.empty:
     us_df["Score"] = 0.0
@@ -143,7 +133,7 @@ st.markdown("""
     </h3>
 """, unsafe_allow_html=True)
 
-eu_df = fetch_data(eu_tickers, "🇪🇺 Europa")
+eu_df = fetch_data(eu_tickers)
 
 if not eu_df.empty:
     eu_df["Score"] = 0.0
