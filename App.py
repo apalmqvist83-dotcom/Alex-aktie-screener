@@ -54,8 +54,8 @@ def fetch_data(tickers):
 
             row = {
                 "Ticker": t,
-                "Bolag": bolag_name,           # Ren text – inget HTML
-                "Yahoo": yahoo_url,            # Ny kolumn för länk
+                "Bolag": bolag_name,
+                "Yahoo": yahoo_url,
                 "Sektor": info.get("sector", "N/A"),
                 "Pris": round(info.get("currentPrice") or info.get("previousClose"), 2),
                 "Forward P/E": round(info.get("forwardPE"), 2) if info.get("forwardPE") is not None else None,
@@ -86,7 +86,13 @@ def style_adx(val):
     return ''
 
 # ====================== USA ======================
-st.subheader("🇺🇸 USA Top 10")
+st.markdown("""
+    <h3 style='margin-bottom: 0.3em;'>
+        <img src="https://flagcdn.com/w40/us.png" width="36" style="vertical-align: middle; margin-right: 10px;">
+        USA Top 10
+    </h3>
+""", unsafe_allow_html=True)
+
 us_df = fetch_data(us_tickers)
 
 if not us_df.empty:
@@ -123,7 +129,13 @@ if not us_df.empty:
     )
 
 # ====================== EUROPA ======================
-st.subheader("🇪🇺 Europa Top 10")
+st.markdown("""
+    <h3 style='margin-bottom: 0.3em;'>
+        <img src="https://flagcdn.com/w40/eu.png" width="36" style="vertical-align: middle; margin-right: 10px;">
+        Europa Top 10
+    </h3>
+""", unsafe_allow_html=True)
+
 eu_df = fetch_data(eu_tickers)
 
 if not eu_df.empty:
@@ -177,5 +189,6 @@ with st.expander("📘 Förklaring av indikatorerna"):
     """)
 
 st.caption("Klicka på 🔗 Öppna för att komma till Yahoo Finance • Data uppdateras vid refresh")
+
 if st.button("🔄 Uppdatera data nu"):
     st.rerun()
