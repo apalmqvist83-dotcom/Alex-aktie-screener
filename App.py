@@ -161,17 +161,22 @@ if not eu_df.empty:
                  column_config=column_config,
                  height=340)
 
-# ====================== INFO & KNAPP ======================
+# ====================== INFO & FÖRKLARING ======================
 st.markdown("**ADX-färgkodning:** <span style='color:#ff4d4d'>■</span> 0–20 Svag  <span style='color:#ffcc00'>■</span> 21–30 Börjande  <span style='color:#00cc66'>■</span> 31–50 Stark", unsafe_allow_html=True)
 
 with st.expander("📘 Förklaring av indikatorerna", expanded=False):
     st.markdown("""
-    - **Forward P/E, PEG, EV/EBITDA**: Ju lägre = mer undervärderad  
-    - **ROE (%) & FCF Yield (%)**: Ju högre = bättre  
-    - **Uppsida (%)**: Analytikernas genomsnittliga förväntan
+    - **Forward P/E**: Pris i förhållande till förväntat resultat per aktie. Ju lägre = billigare.
+    - **PEG**: Forward P/E dividerat med förväntad tillväxt. Ju lägre = bättre värde.
+    - **EV/EBITDA**: Företagsvärde i förhållande till rörelseresultat. Ju lägre = undervärderad.
+    - **ROE (%)**: Avkastning på eget kapital. Ju högre = bättre lönsamhet.
+    - **D/E**: Skuldsättningsgrad. Lägre är säkrare.
+    - **FCF Yield (%)**: Fritt kassaflöde i förhållande till företagsvärde. Ju högre = bättre.
+    - **ADX**: Trendstyrka (0–50). Färgad i tabellen.
+    - **Uppsida (%)**: Genomsnittlig analytikerkursmål minus nuvarande pris.
     """)
 
-col_btn, _ = st.columns([1, 3])
+col_btn, _ = st.columns([1, 4])
 with col_btn:
     if st.button("🔄 Uppdatera data nu", use_container_width=True):
         st.rerun()
