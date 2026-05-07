@@ -89,21 +89,41 @@ def style_adx(val):
     elif 31 <= val <= 50: return 'background-color: #00cc66; color: white; font-weight: bold'
     return ''
 
-# ====================== KOLUMN KONFIG (samma för båda tabellerna) ======================
+# ====================== CUSTOM CSS - Kompakt & All text syns ======================
+st.markdown("""
+<style>
+    .stDataFrame {
+        font-size: 0.92rem !important;
+    }
+    .stDataFrame td, .stDataFrame th {
+        padding: 6px 8px !important;
+        white-space: normal !important;
+        overflow: visible !important;
+        text-overflow: clip !important;
+    }
+    /* Gör Bolag-kolumnen lite mer flexibel */
+    div[data-testid="stDataFrame"] table th:nth-child(2),
+    div[data-testid="stDataFrame"] table td:nth-child(2) {
+        min-width: 210px;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# ====================== KOLUMN KONFIG (optimerad för en skärm) ======================
 column_config = {
-    "Yahoo": st.column_config.LinkColumn("Yahoo Finance", help="Öppna aktiesidan", display_text="🔗 Öppna", width=90),
-    "Ticker": st.column_config.TextColumn("Ticker", width=80),
-    "Bolag": st.column_config.TextColumn("Bolag", width=220),
-    "Sektor": st.column_config.TextColumn("Sektor", width=130),
-    "Pris": st.column_config.NumberColumn("Pris", format="%.2f", width=90),
-    "Forward P/E": st.column_config.NumberColumn("Forward P/E", format="%.2f", width=110),
-    "PEG": st.column_config.NumberColumn("PEG", format="%.2f", width=90),
-    "EV/EBITDA": st.column_config.NumberColumn("EV/EBITDA", format="%.2f", width=120),
-    "ROE (%)": st.column_config.NumberColumn("ROE (%)", format="%.1f", width=100),
-    "D/E": st.column_config.NumberColumn("D/E", format="%.2f", width=80),
-    "FCF Yield (%)": st.column_config.NumberColumn("FCF Yield (%)", format="%.2f", width=130),
-    "ADX": st.column_config.NumberColumn("ADX", format="%.1f", width=80),
-    "Uppsida (%)": st.column_config.NumberColumn("Uppsida (%)", format="%.1f", width=110),
+    "Yahoo": st.column_config.LinkColumn("Yahoo", help="Öppna", display_text="🔗", width=70),
+    "Ticker": st.column_config.TextColumn("Ticker", width=75),
+    "Bolag": st.column_config.TextColumn("Bolag", width=210),
+    "Sektor": st.column_config.TextColumn("Sektor", width=115),
+    "Pris": st.column_config.NumberColumn("Pris", format="%.2f", width=85),
+    "Forward P/E": st.column_config.NumberColumn("F P/E", format="%.2f", width=85),
+    "PEG": st.column_config.NumberColumn("PEG", format="%.2f", width=75),
+    "EV/EBITDA": st.column_config.NumberColumn("EV/EBITDA", format="%.2f", width=105),
+    "ROE (%)": st.column_config.NumberColumn("ROE %", format="%.1f", width=80),
+    "D/E": st.column_config.NumberColumn("D/E", format="%.2f", width=70),
+    "FCF Yield (%)": st.column_config.NumberColumn("FCF Yield", format="%.2f", width=105),
+    "ADX": st.column_config.NumberColumn("ADX", format="%.1f", width=70),
+    "Uppsida (%)": st.column_config.NumberColumn("Uppsida %", format="%.1f", width=95),
 }
 
 # ====================== USA ======================
@@ -123,7 +143,8 @@ if not us_df.empty:
     st.dataframe(styled_us, use_container_width=True, hide_index=True,
                  column_order=["Ticker", "Bolag", "Yahoo", "Sektor", "Pris", "Forward P/E", "PEG", 
                               "EV/EBITDA", "ROE (%)", "D/E", "FCF Yield (%)", "ADX", "Uppsida (%)"],
-                 column_config=column_config)
+                 column_config=column_config,
+                 height=380)
 
 # ====================== EUROPA ======================
 st.markdown('<h3><img src="https://flagcdn.com/w40/eu.png" width="36" style="vertical-align:middle;margin-right:10px;">Europa Top 10</h3>', unsafe_allow_html=True)
@@ -142,7 +163,8 @@ if not eu_df.empty:
     st.dataframe(styled_eu, use_container_width=True, hide_index=True,
                  column_order=["Ticker", "Bolag", "Yahoo", "Sektor", "Pris", "Forward P/E", "PEG", 
                               "EV/EBITDA", "ROE (%)", "D/E", "FCF Yield (%)", "ADX", "Uppsida (%)"],
-                 column_config=column_config)
+                 column_config=column_config,
+                 height=380)
 
 # ====================== INFO ======================
 st.markdown("**ADX-färgkodning:**", unsafe_allow_html=True)
@@ -156,7 +178,7 @@ with st.expander("📘 Förklaring av indikatorerna"):
 - **ADX**: Trendstyrka (färgkodad)  
 - **Uppsida (%)**: Analytikernas förväntan""")
 
-st.caption("Klicka på 🔗 Öppna för Yahoo Finance • Data uppdateras vid refresh")
+st.caption("Klicka på 🔗 för att öppna Yahoo Finance • Data uppdateras vid refresh")
 
 if st.button("🔄 Uppdatera data nu"):
     st.rerun()
