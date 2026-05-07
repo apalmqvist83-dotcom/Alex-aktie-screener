@@ -59,12 +59,16 @@ def fetch_data(candidates, n=10):
             if info is None or len(hist) < 20 or not info.get("currentPrice"):
                 continue
 
+            currency = info.get("currency", "USD").upper()
+            price = info.get("currentPrice") or info.get("previousClose") or 0
+
             row = {
                 "Ticker": t,
                 "Bolag": info.get("longName", t),
                 "Yahoo": f"https://finance.yahoo.com/quote/{t}",
                 "Sektor": info.get("sector", "N/A"),
-                "Pris": round(info.get("currentPrice") or info.get("previousClose") or 0, 2),
+                "Pris": round(price, 2),
+                "Valuta": currency,
                 "Forward P/E": round(info.get("forwardPE"), 2) if info.get("forwardPE") is not None else None,
                 "PEG": round(info.get("pegRatio"), 2) if info.get("pegRatio") is not None else None,
                 "EV/EBITDA": round(info.get("enterpriseToEbitda"), 2) if info.get("enterpriseToEbitda") is not None else None,
@@ -73,8 +77,8 @@ def fetch_data(candidates, n=10):
                 "FCF Yield (%)": round((info.get("freeCashflow", 0) / info.get("enterpriseValue", 1)) * 100, 2) 
                                  if info.get("enterpriseValue") and info.get("freeCashflow") else None,
                 "ADX": adx_value,
-                "Uppsida (%)": round((info.get("targetMeanPrice") / info.get("currentPrice") - 1) * 100, 1) 
-                               if info.get("targetMeanPrice") and info.get("currentPrice") else None
+                "Uppsida (%)": round((info.get("targetMeanPrice") / price - 1) * 100, 1) 
+                               if info.get("targetMeanPrice") and price else None
             }
             data.append(row)
         except:
@@ -89,46 +93,43 @@ def style_adx(val):
     elif 31 <= val <= 50: return 'background-color: #00cc66; color: white; font-weight: bold'
     return ''
 
-# ====================== CUSTOM CSS - Kompakt & All text syns ======================
+# ====================== CUSTOM CSS - Extremt kompakt ======================
 st.markdown("""
 <style>
     .stDataFrame {
-        font-size: 0.92rem !important;
+        font-size: 0.90rem !important;
     }
     .stDataFrame td, .stDataFrame th {
-        padding: 6px 8px !important;
-        white-space: normal !important;
-        overflow: visible !important;
-        text-overflow: clip !important;
+        padding: 5px 6px !important;
+        line-height: 1.1 !important;
     }
-    /* Gör Bolag-kolumnen lite mer flexibel */
-    div[data-testid="stDataFrame"] table th:nth-child(2),
-    div[data-testid="stDataFrame"] table td:nth-child(2) {
-        min-width: 210px;
+    div[data-testid="stDataFrame"] table th:nth-child(3),
+    div[data-testid="stDataFrame"] table td:nth-child(3) {
+        min-width: 200px;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# ====================== KOLUMN KONFIG (optimerad för en skärm) ======================
+# ====================== KOLUMN KONFIG ======================
 column_config = {
-    "Yahoo": st.column_config.LinkColumn("Yahoo", help="Öppna", display_text="🔗", width=70),
+    "Yahoo": st.column_config.LinkColumn("Yahoo", help="Öppna", display_text="🔗", width=65),
     "Ticker": st.column_config.TextColumn("Ticker", width=75),
-    "Bolag": st.column_config.TextColumn("Bolag", width=210),
-    "Sektor": st.column_config.TextColumn("Sektor", width=115),
-    "Pris": st.column_config.NumberColumn("Pris", format="%.2f", width=85),
-    "Forward P/E": st.column_config.NumberColumn("F P/E", format="%.2f", width=85),
-    "PEG": st.column_config.NumberColumn("PEG", format="%.2f", width=75),
+    "Bolag": st.column_config.TextColumn("Bolag", width=200),
+    "Sektor": st.column_config.TextColumn("Sektor", width=110),
+    "Pris": st.column_config.NumberColumn("Pris", format="%.2f", width=95),
+    "Valuta": st.column_config.TextColumn("Valuta", width=65),
+    "Forward P/E": st.column_config.NumberColumn("F P/E", format="%.2f", width=80),
+    "PEG": st.column_config.NumberColumn("PEG", format="%.2f", width=70),
     "EV/EBITDA": st.column_config.NumberColumn("EV/EBITDA", format="%.2f", width=105),
-    "ROE (%)": st.column_config.NumberColumn("ROE %", format="%.1f", width=80),
-    "D/E": st.column_config.NumberColumn("D/E", format="%.2f", width=70),
+    "ROE (%)": st.column_config.NumberColumn("ROE %", format="%.1f", width=75),
+    "D/E": st.column_config.NumberColumn("D/E", format="%.2f", width=65),
     "FCF Yield (%)": st.column_config.NumberColumn("FCF Yield", format="%.2f", width=105),
-    "ADX": st.column_config.NumberColumn("ADX", format="%.1f", width=70),
-    "Uppsida (%)": st.column_config.NumberColumn("Uppsida %", format="%.1f", width=95),
+    "ADX": st.column_config.NumberColumn("ADX", format="%.1f", width=65),
+    "Uppsida (%)": st.column_config.NumberColumn("Uppsida %", format="%.1f", width=90),
 }
 
 # ====================== USA ======================
 st.markdown('<h3><img src="https://flagcdn.com/w40/us.png" width="36" style="vertical-align:middle;margin-right:10px;">USA Top 10</h3>', unsafe_allow_html=True)
-
 us_df = fetch_data(us_candidates, n=10)
 
 if not us_df.empty:
@@ -141,14 +142,13 @@ if not us_df.empty:
     styled_us = top_us.style.map(style_adx, subset=['ADX'])
 
     st.dataframe(styled_us, use_container_width=True, hide_index=True,
-                 column_order=["Ticker", "Bolag", "Yahoo", "Sektor", "Pris", "Forward P/E", "PEG", 
+                 column_order=["Ticker", "Bolag", "Yahoo", "Sektor", "Pris", "Valuta", "Forward P/E", "PEG", 
                               "EV/EBITDA", "ROE (%)", "D/E", "FCF Yield (%)", "ADX", "Uppsida (%)"],
                  column_config=column_config,
-                 height=380)
+                 height=355)
 
 # ====================== EUROPA ======================
 st.markdown('<h3><img src="https://flagcdn.com/w40/eu.png" width="36" style="vertical-align:middle;margin-right:10px;">Europa Top 10</h3>', unsafe_allow_html=True)
-
 eu_df = fetch_data(eu_candidates, n=10)
 
 if not eu_df.empty:
@@ -161,10 +161,10 @@ if not eu_df.empty:
     styled_eu = top_eu.style.map(style_adx, subset=['ADX'])
 
     st.dataframe(styled_eu, use_container_width=True, hide_index=True,
-                 column_order=["Ticker", "Bolag", "Yahoo", "Sektor", "Pris", "Forward P/E", "PEG", 
+                 column_order=["Ticker", "Bolag", "Yahoo", "Sektor", "Pris", "Valuta", "Forward P/E", "PEG", 
                               "EV/EBITDA", "ROE (%)", "D/E", "FCF Yield (%)", "ADX", "Uppsida (%)"],
                  column_config=column_config,
-                 height=380)
+                 height=355)
 
 # ====================== INFO ======================
 st.markdown("**ADX-färgkodning:**", unsafe_allow_html=True)
