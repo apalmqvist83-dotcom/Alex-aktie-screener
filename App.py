@@ -7,14 +7,18 @@ from zoneinfo import ZoneInfo
 st.set_page_config(page_title="Value Dashboard", layout="wide")
 st.title("🚀 Topp 10 Undervärderade Aktier")
 
-# CEST-tid
 cest_time = datetime.now(ZoneInfo("Europe/Stockholm"))
 st.write(f"Uppdaterad: {cest_time.strftime('%Y-%m-%d %H:%M')} CEST (uppdateras vid refresh)")
 
-# === TICKERS ===
-us_tickers = ["ALL", "MU", "GEV", "RYAAY", "ACGL", "UHS", "T", "CINF", "ALV", "CTSH", "JPM", "BAC", "LEN", "MOS", "PDD"]
+# ====================== CANDIDATE POOLS (större pooler) ======================
+us_candidates = ["ALL", "MU", "GEV", "RYAAY", "ACGL", "UHS", "T", "CINF", "ALV", "CTSH", 
+                 "JPM", "BAC", "LEN", "MOS", "PDD", "CSCO", "GS", "MS", "BK", "USB"]
 
-eu_tickers = ["SAN.PA", "DNO.OL", "DOM.ST", "RYAAY", "SBC.MI", "DEZ.DE", "COLO-B.CO", "HAYPP.ST"]   # ALV.ST och BSGR.AS borttagna
+eu_candidates = [
+    "SAN.PA", "DNO.OL", "DOM.ST", "ALIV-SDB.ST", "RYAAY", "SBC.MI", "DEZ.DE", 
+    "COLO-B.CO", "HAYPP.ST", "VOLV-B.ST", "NOKIA.HE", "NOVO-B.CO", "EQNR.OL",
+    "OR.PA", "MC.PA", "ASML.AS", "RMS.PA", "KNEBV.HE", "SAND.ST", "TEL.OL"
+]
 
 def calculate_adx(hist, period=14):
     if len(hist) < period * 2 or hist.empty:
@@ -41,16 +45,19 @@ def calculate_adx(hist, period=14):
     return round(adx.iloc[-1], 1)
 
 @st.cache_data(ttl=3600)
-def fetch_data(tickers):
+def fetch_data(candidates, n=10):
     data = []
-    for t in tickers:
+    used = []
+    for t in candidates:
+        if len(data) >= n:
+            break
         try:
             stock = yf.Ticker(t)
             info = stock.info
             hist = stock.history(period="3mo")
             adx_value = calculate_adx(hist)
 
-            if info is None or len(hist) < 20:
+            if info is None or len(hist) < 20 or not info.get("currentPrice"):
                 continue
 
             row = {
@@ -71,30 +78,23 @@ def fetch_data(tickers):
                                if info.get("targetMeanPrice") and info.get("currentPrice") else None
             }
             data.append(row)
+            used.append(t)
         except:
             continue
-    return pd.DataFrame(data)
+    
+    return pd.DataFrame(data), used
 
 def style_adx(val):
     if pd.isna(val):
         return ''
-    if val <= 20.9:
-        return 'background-color: #ff4d4d; color: white; font-weight: bold'
-    elif 21 <= val <= 30.9:
-        return 'background-color: #ffcc00; color: black; font-weight: bold'
-    elif 31 <= val <= 50:
-        return 'background-color: #00cc66; color: white; font-weight: bold'
+    if val <= 20.9: return 'background-color: #ff4d4d; color: white; font-weight: bold'
+    elif 21 <= val <= 30.9: return 'background-color: #ffcc00; color: black; font-weight: bold'
+    elif 31 <= val <= 50: return 'background-color: #00cc66; color: white; font-weight: bold'
     return ''
 
 # ====================== USA ======================
-st.markdown("""
-    <h3 style='margin-bottom: 0.3em;'>
-        <img src="https://flagcdn.com/w40/us.png" width="36" style="vertical-align: middle; margin-right: 10px;">
-        USA Top 10
-    </h3>
-""", unsafe_allow_html=True)
-
-us_df = fetch_data(us_tickers)
+st.markdown('<h3><img src="https://flagcdn.com/w40/us.png" width="36" style="vertical-align:middle;margin-right:10px;">USA Top 10</h3>', unsafe_allow_html=True)
+us_df, _ = fetch_data(us_candidates, n=10)
 
 if not us_df.empty:
     us_df["Score"] = 0.0
@@ -105,35 +105,19 @@ if not us_df.empty:
     top_us = us_df.nsmallest(10, "Score").copy()
     styled_us = top_us.style.map(style_adx, subset=['ADX'])
 
-    st.dataframe(
-        styled_us,
-        use_container_width=True,
-        hide_index=True,
-        column_order=["Ticker", "Bolag", "Yahoo", "Sektor", "Pris", "Forward P/E", "PEG", 
-                     "EV/EBITDA", "ROE (%)", "D/E", "FCF Yield (%)", "ADX", "Uppsida (%)"],
-        column_config={
-            "Yahoo": st.column_config.LinkColumn("Yahoo Finance", help="Öppna aktiesidan", display_text="🔗 Öppna"),
-            "Pris": st.column_config.NumberColumn("Pris", format="%.2f"),
-            "Forward P/E": st.column_config.NumberColumn("Forward P/E", format="%.2f"),
-            "PEG": st.column_config.NumberColumn("PEG", format="%.2f"),
-            "EV/EBITDA": st.column_config.NumberColumn("EV/EBITDA", format="%.2f"),
-            "ROE (%)": st.column_config.NumberColumn("ROE (%)", format="%.1f"),
-            "D/E": st.column_config.NumberColumn("D/E", format="%.2f"),
-            "FCF Yield (%)": st.column_config.NumberColumn("FCF Yield (%)", format="%.2f"),
-            "ADX": st.column_config.NumberColumn("ADX", format="%.1f"),
-            "Uppsida (%)": st.column_config.NumberColumn("Uppsida (%)", format="%.1f"),
-        }
-    )
+    st.dataframe(styled_us, use_container_width=True, hide_index=True,
+                 column_order=["Ticker", "Bolag", "Yahoo", "Sektor", "Pris", "Forward P/E", "PEG", 
+                              "EV/EBITDA", "ROE (%)", "D/E", "FCF Yield (%)", "ADX", "Uppsida (%)"],
+                 column_config={**{col: st.column_config.NumberColumn(col, format=format) 
+                                  for col, format in [
+                                      ("Pris","%.2f"),("Forward P/E","%.2f"),("PEG","%.2f"),
+                                      ("EV/EBITDA","%.2f"),("ROE (%)","%.1f"),("D/E","%.2f"),
+                                      ("FCF Yield (%)","%.2f"),("ADX","%.1f"),("Uppsida (%)","%.1f")]}
+                               ,"Yahoo": st.column_config.LinkColumn("Yahoo Finance", help="Öppna aktiesidan", display_text="🔗 Öppna")})
 
 # ====================== EUROPA ======================
-st.markdown("""
-    <h3 style='margin-bottom: 0.3em;'>
-        <img src="https://flagcdn.com/w40/eu.png" width="36" style="vertical-align: middle; margin-right: 10px;">
-        Europa Top 10
-    </h3>
-""", unsafe_allow_html=True)
-
-eu_df = fetch_data(eu_tickers)
+st.markdown('<h3><img src="https://flagcdn.com/w40/eu.png" width="36" style="vertical-align:middle;margin-right:10px;">Europa Top 10</h3>', unsafe_allow_html=True)
+eu_df, used = fetch_data(eu_candidates, n=10)
 
 if not eu_df.empty:
     eu_df["Score"] = 0.0
@@ -144,44 +128,29 @@ if not eu_df.empty:
     top_eu = eu_df.nsmallest(10, "Score").copy()
     styled_eu = top_eu.style.map(style_adx, subset=['ADX'])
 
-    st.dataframe(
-        styled_eu,
-        use_container_width=True,
-        hide_index=True,
-        column_order=["Ticker", "Bolag", "Yahoo", "Sektor", "Pris", "Forward P/E", "PEG", 
-                     "EV/EBITDA", "ROE (%)", "D/E", "FCF Yield (%)", "ADX", "Uppsida (%)"],
-        column_config={
-            "Yahoo": st.column_config.LinkColumn("Yahoo Finance", help="Öppna aktiesidan", display_text="🔗 Öppna"),
-            "Pris": st.column_config.NumberColumn("Pris", format="%.2f"),
-            "Forward P/E": st.column_config.NumberColumn("Forward P/E", format="%.2f"),
-            "PEG": st.column_config.NumberColumn("PEG", format="%.2f"),
-            "EV/EBITDA": st.column_config.NumberColumn("EV/EBITDA", format="%.2f"),
-            "ROE (%)": st.column_config.NumberColumn("ROE (%)", format="%.1f"),
-            "D/E": st.column_config.NumberColumn("D/E", format="%.2f"),
-            "FCF Yield (%)": st.column_config.NumberColumn("FCF Yield (%)", format="%.2f"),
-            "ADX": st.column_config.NumberColumn("ADX", format="%.1f"),
-            "Uppsida (%)": st.column_config.NumberColumn("Uppsida (%)", format="%.1f"),
-        }
-    )
+    st.dataframe(styled_eu, use_container_width=True, hide_index=True,
+                 column_order=["Ticker", "Bolag", "Yahoo", "Sektor", "Pris", "Forward P/E", "PEG", 
+                              "EV/EBITDA", "ROE (%)", "D/E", "FCF Yield (%)", "ADX", "Uppsida (%)"],
+                 column_config={**{col: st.column_config.NumberColumn(col, format=format) 
+                                  for col, format in [
+                                      ("Pris","%.2f"),("Forward P/E","%.2f"),("PEG","%.2f"),
+                                      ("EV/EBITDA","%.2f"),("ROE (%)","%.1f"),("D/E","%.2f"),
+                                      ("FCF Yield (%)","%.2f"),("ADX","%.1f"),("Uppsida (%)","%.1f")]}
+                               ,"Yahoo": st.column_config.LinkColumn("Yahoo Finance", help="Öppna aktiesidan", display_text="🔗 Öppna")})
 
-# ====================== INFO & KONTROLLER ======================
+# ====================== INFO ======================
 st.markdown("**ADX-färgkodning:**", unsafe_allow_html=True)
-st.markdown("""
-<span style='color:#ff4d4d'>■</span> **0–20** Svag trend! 
-<span style='color:#ffcc00'>■</span> **21–30** Börjande trend! 
-<span style='color:#00cc66'>■</span> **31–50** Stark trend!
-""", unsafe_allow_html=True)
+st.markdown("""<span style='color:#ff4d4d'>■</span> **0–20** Svag 
+<span style='color:#ffcc00'>■</span> **21–30** Börjande 
+<span style='color:#00cc66'>■</span> **31–50** Stark""", unsafe_allow_html=True)
 
 with st.expander("📘 Förklaring av indikatorerna"):
-    st.markdown("""
-    - **Forward P/E, PEG, EV/EBITDA**: Ju lägre desto mer undervärderad.  
-    - **ROE (%)**: Högre = bättre lönsamhet.  
-    - **FCF Yield (%)**: Högre = mer fritt kassaflöde.  
-    - **ADX**: Trendstyrka (färgkodad i tabellen).  
-    - **Uppsida (%)**: Potentiell kursuppgång enligt analytiker.
-    """)
+    st.markdown("""- **Forward P/E, PEG, EV/EBITDA**: Ju lägre = mer undervärderad  
+- **ROE (%) & FCF Yield (%)**: Högre = bättre  
+- **ADX**: Trendstyrka (färgkodad)  
+- **Uppsida (%)**: Analytikernas förväntan""")
 
-st.caption("Klicka på 🔗 Öppna för att komma till Yahoo Finance • Data uppdateras vid refresh")
+st.caption("Klicka på 🔗 Öppna för Yahoo Finance • Data uppdateras vid refresh")
 
 if st.button("🔄 Uppdatera data nu"):
     st.rerun()
