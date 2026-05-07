@@ -10,7 +10,7 @@ st.title("🚀 Topp 10 Undervärderade Aktier")
 cest_time = datetime.now(ZoneInfo("Europe/Stockholm"))
 st.write(f"Uppdaterad: {cest_time.strftime('%Y-%m-%d %H:%M')} CEST (uppdateras vid refresh)")
 
-# ====================== CANDIDATE POOLS (större pooler) ======================
+# ====================== CANDIDATE POOLS ======================
 us_candidates = ["ALL", "MU", "GEV", "RYAAY", "ACGL", "UHS", "T", "CINF", "ALV", "CTSH", 
                  "JPM", "BAC", "LEN", "MOS", "PDD", "CSCO", "GS", "MS", "BK", "USB"]
 
@@ -47,7 +47,6 @@ def calculate_adx(hist, period=14):
 @st.cache_data(ttl=3600)
 def fetch_data(candidates, n=10):
     data = []
-    used = []
     for t in candidates:
         if len(data) >= n:
             break
@@ -78,11 +77,9 @@ def fetch_data(candidates, n=10):
                                if info.get("targetMeanPrice") and info.get("currentPrice") else None
             }
             data.append(row)
-            used.append(t)
         except:
             continue
-    
-    return pd.DataFrame(data), used
+    return pd.DataFrame(data)
 
 def style_adx(val):
     if pd.isna(val):
@@ -92,9 +89,27 @@ def style_adx(val):
     elif 31 <= val <= 50: return 'background-color: #00cc66; color: white; font-weight: bold'
     return ''
 
+# ====================== KOLUMN KONFIG (samma för båda tabellerna) ======================
+column_config = {
+    "Yahoo": st.column_config.LinkColumn("Yahoo Finance", help="Öppna aktiesidan", display_text="🔗 Öppna", width=90),
+    "Ticker": st.column_config.TextColumn("Ticker", width=80),
+    "Bolag": st.column_config.TextColumn("Bolag", width=220),
+    "Sektor": st.column_config.TextColumn("Sektor", width=130),
+    "Pris": st.column_config.NumberColumn("Pris", format="%.2f", width=90),
+    "Forward P/E": st.column_config.NumberColumn("Forward P/E", format="%.2f", width=110),
+    "PEG": st.column_config.NumberColumn("PEG", format="%.2f", width=90),
+    "EV/EBITDA": st.column_config.NumberColumn("EV/EBITDA", format="%.2f", width=120),
+    "ROE (%)": st.column_config.NumberColumn("ROE (%)", format="%.1f", width=100),
+    "D/E": st.column_config.NumberColumn("D/E", format="%.2f", width=80),
+    "FCF Yield (%)": st.column_config.NumberColumn("FCF Yield (%)", format="%.2f", width=130),
+    "ADX": st.column_config.NumberColumn("ADX", format="%.1f", width=80),
+    "Uppsida (%)": st.column_config.NumberColumn("Uppsida (%)", format="%.1f", width=110),
+}
+
 # ====================== USA ======================
 st.markdown('<h3><img src="https://flagcdn.com/w40/us.png" width="36" style="vertical-align:middle;margin-right:10px;">USA Top 10</h3>', unsafe_allow_html=True)
-us_df, _ = fetch_data(us_candidates, n=10)
+
+us_df = fetch_data(us_candidates, n=10)
 
 if not us_df.empty:
     us_df["Score"] = 0.0
@@ -108,16 +123,12 @@ if not us_df.empty:
     st.dataframe(styled_us, use_container_width=True, hide_index=True,
                  column_order=["Ticker", "Bolag", "Yahoo", "Sektor", "Pris", "Forward P/E", "PEG", 
                               "EV/EBITDA", "ROE (%)", "D/E", "FCF Yield (%)", "ADX", "Uppsida (%)"],
-                 column_config={**{col: st.column_config.NumberColumn(col, format=format) 
-                                  for col, format in [
-                                      ("Pris","%.2f"),("Forward P/E","%.2f"),("PEG","%.2f"),
-                                      ("EV/EBITDA","%.2f"),("ROE (%)","%.1f"),("D/E","%.2f"),
-                                      ("FCF Yield (%)","%.2f"),("ADX","%.1f"),("Uppsida (%)","%.1f")]}
-                               ,"Yahoo": st.column_config.LinkColumn("Yahoo Finance", help="Öppna aktiesidan", display_text="🔗 Öppna")})
+                 column_config=column_config)
 
 # ====================== EUROPA ======================
 st.markdown('<h3><img src="https://flagcdn.com/w40/eu.png" width="36" style="vertical-align:middle;margin-right:10px;">Europa Top 10</h3>', unsafe_allow_html=True)
-eu_df, used = fetch_data(eu_candidates, n=10)
+
+eu_df = fetch_data(eu_candidates, n=10)
 
 if not eu_df.empty:
     eu_df["Score"] = 0.0
@@ -131,12 +142,7 @@ if not eu_df.empty:
     st.dataframe(styled_eu, use_container_width=True, hide_index=True,
                  column_order=["Ticker", "Bolag", "Yahoo", "Sektor", "Pris", "Forward P/E", "PEG", 
                               "EV/EBITDA", "ROE (%)", "D/E", "FCF Yield (%)", "ADX", "Uppsida (%)"],
-                 column_config={**{col: st.column_config.NumberColumn(col, format=format) 
-                                  for col, format in [
-                                      ("Pris","%.2f"),("Forward P/E","%.2f"),("PEG","%.2f"),
-                                      ("EV/EBITDA","%.2f"),("ROE (%)","%.1f"),("D/E","%.2f"),
-                                      ("FCF Yield (%)","%.2f"),("ADX","%.1f"),("Uppsida (%)","%.1f")]}
-                               ,"Yahoo": st.column_config.LinkColumn("Yahoo Finance", help="Öppna aktiesidan", display_text="🔗 Öppna")})
+                 column_config=column_config)
 
 # ====================== INFO ======================
 st.markdown("**ADX-färgkodning:**", unsafe_allow_html=True)
