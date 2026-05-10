@@ -23,11 +23,23 @@ st.markdown("""
         background-color: #161D2A !important;
     }
 
-    /* Kort och sektioner */
-    .stMarkdown, .stDataFrame, .stExpander, div[data-testid="stExpander"] {
+    /* Kort och sektioner - men EJ rubriker och uppdateringstid */
+    .stDataFrame, 
+    .stExpander, 
+    div[data-testid="stExpander"] {
         background-color: #1E293B !important;
         border-radius: 12px;
-        border: 1px solid #334155;
+        border: 1px solid #334155 !important;
+    }
+
+    /* Ta bort ram runt vanliga markdown-rubriker och uppdateringstid */
+    .stMarkdown h3,
+    .stMarkdown p,
+    div[data-testid="stMarkdownContainer"] p {
+        background-color: transparent !important;
+        border: none !important;
+        padding: 0 !important;
+        margin-bottom: 0.8rem !important;
     }
 
     /* Tabell */
@@ -36,7 +48,7 @@ st.markdown("""
     }
 
     /* Textfärger */
-    h1, h2, h3, h4, p, label, .stMarkdown, div {
+    h1, h2, h3, h4, p, label {
         color: #E2E8F0 !important;
     }
     h1 {
@@ -65,13 +77,10 @@ st.markdown("""
         background-color: #25334A !important;
     }
 
-    /* Förbättrad tabellstil */
+    /* Tabellheader */
     .dataframe th {
         background-color: #25334A !important;
         color: #E2E8F0 !important;
-    }
-    .dataframe td {
-        background-color: #1E293B !important;
     }
 </style>
 """, unsafe_allow_html=True)
