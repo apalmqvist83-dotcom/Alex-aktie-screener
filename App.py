@@ -10,11 +10,11 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# ====================== MODERN MIDNATTBLÅ THEME ======================
+# ====================== MODERN MIDNATTBLÅ THEME (bättre stöd för båda lägen) ======================
 st.markdown("""
 <style>
-    /* Huvudbakgrund - Midnattsblå */
-    .stApp {
+    /* Huvudbakgrund - Midnattsblå (prioriteras) */
+    .stApp, [data-testid="stAppViewContainer"] {
         background-color: #1A202C !important;
     }
 
@@ -23,7 +23,7 @@ st.markdown("""
         background-color: #161D2A !important;
     }
 
-    /* Kort och sektioner - men EJ rubriker och uppdateringstid */
+    /* Kort och sektioner */
     .stDataFrame, 
     .stExpander, 
     div[data-testid="stExpander"] {
@@ -32,25 +32,29 @@ st.markdown("""
         border: 1px solid #334155 !important;
     }
 
-    /* Ta bort ram runt vanliga markdown-rubriker och uppdateringstid */
+    /* Ta bort ram runt rubriker och uppdateringstid */
     .stMarkdown h3,
     .stMarkdown p,
     div[data-testid="stMarkdownContainer"] p {
         background-color: transparent !important;
         border: none !important;
         padding: 0 !important;
-        margin-bottom: 0.8rem !important;
     }
 
-    /* Tabell */
-    .stDataFrame {
-        background-color: #1E293B !important;
+    /* Textfärger - anpassas efter tema */
+    h1, h2, h3, h4, p, label, .stMarkdown, div {
+        color: #E2E8F0 !important;           /* Ljus text i mörkt läge */
     }
 
-    /* Textfärger */
-    h1, h2, h3, h4, p, label {
-        color: #E2E8F0 !important;
+    /* Försök förbättra ljust läge */
+    [data-theme="light"] h1,
+    [data-theme="light"] h2,
+    [data-theme="light"] h3,
+    [data-theme="light"] p,
+    [data-theme="light"] label {
+        color: #1E293B !important;
     }
+
     h1 {
         color: #F1F5F9 !important;
     }
@@ -69,7 +73,6 @@ st.markdown("""
     }
     button:hover {
         background-color: #475569 !important;
-        color: white !important;
     }
 
     /* Expander */
@@ -77,9 +80,13 @@ st.markdown("""
         background-color: #25334A !important;
     }
 
-    /* Tabellheader */
+    /* Tabell */
     .dataframe th {
         background-color: #25334A !important;
+        color: #E2E8F0 !important;
+    }
+    .dataframe td {
+        background-color: #1E293B !important;
         color: #E2E8F0 !important;
     }
 </style>
@@ -90,6 +97,7 @@ st.title("🚀 Topp 10 Undervärderade Aktier")
 cest_time = datetime.now(ZoneInfo("Europe/Stockholm"))
 st.write(f"Uppdaterad: {cest_time.strftime('%Y-%m-%d %H:%M')} CEST")
 
+# Resten av koden är oförändrad...
 # ====================== CANDIDATE POOLS ======================
 us_candidates = ["ALL", "MU", "GEV", "RYAAY", "ACGL", "UHS", "T", "CINF", "ALV", "CTSH", 
                  "JPM", "BAC", "LEN", "MOS", "PDD", "CSCO", "GS", "MS", "BK", "USB"]
