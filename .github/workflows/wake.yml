@@ -1,0 +1,26 @@
+name: Wake Streamlit App
+
+on:
+  schedule:
+    - cron: '0 */3 * * *'      # Var 3:e timme (rekommenderat)
+  workflow_dispatch:
+
+jobs:
+  wake:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install selenium webdriver-manager
+
+      - name: Wake up Streamlit App
+        run: python wake.py
