@@ -4,7 +4,77 @@ import pandas as pd
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-st.set_page_config(page_title="Value Dashboard", layout="wide", initial_sidebar_state="collapsed")
+st.set_page_config(
+    page_title="Value Dashboard", 
+    layout="wide", 
+    initial_sidebar_state="collapsed"
+)
+
+# ====================== MODERN MIDNATTBLÅ THEME ======================
+st.markdown("""
+<style>
+    /* Huvudbakgrund - Midnattsblå */
+    .stApp {
+        background-color: #1A202C !important;
+    }
+
+    /* Sidebar */
+    [data-testid="stSidebar"] {
+        background-color: #161D2A !important;
+    }
+
+    /* Kort och sektioner */
+    .stMarkdown, .stDataFrame, .stExpander, div[data-testid="stExpander"] {
+        background-color: #1E293B !important;
+        border-radius: 12px;
+        border: 1px solid #334155;
+    }
+
+    /* Tabell */
+    .stDataFrame {
+        background-color: #1E293B !important;
+    }
+
+    /* Textfärger */
+    h1, h2, h3, h4, p, label, .stMarkdown, div {
+        color: #E2E8F0 !important;
+    }
+    h1 {
+        color: #F1F5F9 !important;
+    }
+
+    /* Länkar */
+    a {
+        color: #60A5FA !important;
+    }
+
+    /* Knappar */
+    button {
+        background-color: #334155 !important;
+        color: #E2E8F0 !important;
+        border: none !important;
+        border-radius: 8px;
+    }
+    button:hover {
+        background-color: #475569 !important;
+        color: white !important;
+    }
+
+    /* Expander */
+    .stExpanderHeader {
+        background-color: #25334A !important;
+    }
+
+    /* Förbättrad tabellstil */
+    .dataframe th {
+        background-color: #25334A !important;
+        color: #E2E8F0 !important;
+    }
+    .dataframe td {
+        background-color: #1E293B !important;
+    }
+</style>
+""", unsafe_allow_html=True)
 
 st.title("🚀 Topp 10 Undervärderade Aktier")
 
@@ -93,15 +163,6 @@ def style_adx(val):
     elif 21 <= val <= 30.9: return 'background-color: #ffcc00; color: black; font-weight: bold'
     elif 31 <= val <= 50: return 'background-color: #00cc66; color: white; font-weight: bold'
     return ''
-
-# ====================== KOMPAKT CSS ======================
-st.markdown("""
-<style>
-    .main .block-container { padding-top: 1rem; padding-bottom: 0.5rem; }
-    h1 { margin-bottom: 0.4rem !important; }
-    h3 { margin-bottom: 0.3rem !important; }
-</style>
-""", unsafe_allow_html=True)
 
 # ====================== KOLUMN KONFIG ======================
 column_config = {
